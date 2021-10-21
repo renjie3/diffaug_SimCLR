@@ -1,0 +1,14 @@
+__pycache__
+*.pyc
+.DS_Store
+.ipynb_checkpoints
+experiments/
+test_exp/
+pretrained_checkpoints/
+exp_results.json
+plots/
+data/
+results/
+fix_checkpoint/
+path/
+my_experiments/

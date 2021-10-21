@@ -1,0 +1,42 @@
+#!/bin/bash --login
+########## SBATCH Lines for Resource Request ##########
+
+#SBATCH --time=48:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --nodes=1                 # number of different nodes - could be an exact number or a range of nodes (same as -N)
+#SBATCH --ntasks=1                  # number of tasks - how many tasks (nodes) that you require (same as -n)
+#SBATCH --cpus-per-task=2           # number of CPUs (or cores) per task (same as -c)
+#SBATCH --mem-per-cpu=8G            # memory required per allocated CPU (or core) - amount of memory (in bytes)
+#SBATCH --job-name SimCLR      # you can give your job a name for easier identification (same as -J)
+#SBATCH --gres=gpu:v100:1
+#SBATCH -o /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/logfile/%j.log
+#SBATCH -e /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/logfile/%j.err
+
+########## Command Lines for Job Running ##########
+
+module purge
+module load GCC/6.4.0-2.28 OpenMPI  ### load necessary modules.
+conda activate simclr
+
+JOB_INFO="Train simclr with differentiable data augmentation."
+
+MYCOMMEND="python main.py --batch_size 512 --epochs 1000 --arch resnet18"
+
+MY_ROOT_PATH="/mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR"
+
+#print the information of a job into one file
+date >>${MY_ROOT_PATH}job_history.log
+echo $SLURM_JOB_ID >>${MY_ROOT_PATH}job_history.log
+echo $JOB_INFO >>${MY_ROOT_PATH}job_history.log
+echo $MYCOMMEND >>${MY_ROOT_PATH}job_history.log
+echo "---------------------------------------------------------------" >>${MY_ROOT_PATH}job_history.log
+
+echo $JOB_INFO
+
+cd ${MY_ROOT_PATH}    ### change to the directory where your code is located.
+
+echo $MYCOMMEND
+$MYCOMMEND
+###python main.py --batch_size 512 --epochs 1000 --arch resnet18
+
+scontrol show job $SLURM_JOB_ID     ### write job information to SLURM output file.
+### js -j $SLURM_JOB_ID   ### write resource usage to SLURM output file (powertools command).
