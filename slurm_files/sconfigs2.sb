@@ -1,0 +1,18 @@
+
+#print the information of a job into one file
+date >>${MY_ROOT_PATH}submit_history.log
+echo $SLURM_JOB_ID >>${MY_ROOT_PATH}submit_history.log
+echo $JOB_INFO >>${MY_ROOT_PATH}submit_history.log
+echo $MYCOMMEND >>${MY_ROOT_PATH}submit_history.log
+echo "---------------------------------------------------------------" >>${MY_ROOT_PATH}submit_history.log
+
+echo $JOB_INFO
+
+# cd ${MY_ROOT_PATH}    ### change to the directory where your code is located.
+
+echo $MYCOMMEND
+$MYCOMMEND
+###python main.py --batch_size 512 --epochs 1000 --arch resnet18
+
+scontrol show job $SLURM_JOB_ID     ### write job information to SLURM output file.
+### js -j $SLURM_JOB_ID   ### write resource usage to SLURM output file (powertools command).

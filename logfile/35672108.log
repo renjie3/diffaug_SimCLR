@@ -1,0 +1,15 @@
+Train simclr with differentiable data augmentation.
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+Files already downloaded and verified
+Files already downloaded and verified
+Files already downloaded and verified
+[INFO] Register count_convNd() for <class 'torch.nn.modules.conv.Conv2d'>.
+[INFO] Register count_bn() for <class 'torch.nn.modules.batchnorm.BatchNorm2d'>.
+[INFO] Register zero_ops() for <class 'torch.nn.modules.activation.ReLU'>.
+[91m[WARN] Cannot find rule for <class 'torchvision.models.resnet.BasicBlock'>. Treat it as zero Macs and zero Params.[00m
+[91m[WARN] Cannot find rule for <class 'torch.nn.modules.container.Sequential'>. Treat it as zero Macs and zero Params.[00m
+[INFO] Register count_adap_avgpool() for <class 'torch.nn.modules.pooling.AdaptiveAvgPool2d'>.
+[INFO] Register count_linear() for <class 'torch.nn.modules.linear.Linear'>.
+[INFO] Register count_bn() for <class 'torch.nn.modules.batchnorm.BatchNorm1d'>.
+[91m[WARN] Cannot find rule for <class 'model.Model'>. Treat it as zero Macs and zero Params.[00m
+# Model Params: 11.50M FLOPs: 556.98M

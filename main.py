@@ -1,6 +1,20 @@
 import argparse
+
+parser = argparse.ArgumentParser(description='Train SimCLR')
+parser.add_argument('--feature_dim', default=128, type=int, help='Feature dim for latent vector')
+parser.add_argument('--temperature', default=0.5, type=float, help='Temperature used in softmax')
+parser.add_argument('--k', default=200, type=int, help='Top k most similar images used to predict the label')
+parser.add_argument('--batch_size', default=512, type=int, help='Number of images in each mini-batch')
+parser.add_argument('--epochs', default=500, type=int, help='Number of sweeps over the dataset to train')
+parser.add_argument('--arch', default='resnet18', type=str, help='The backbone of encoder')
+parser.add_argument('--local_dev', action='store_true', default=False)
+
+# args parse
+args = parser.parse_args()
+
 import os
-# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+if args.local_dev:
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 import pandas as pd
 import torch
@@ -12,7 +26,7 @@ from tqdm import tqdm
 
 import utils
 from model import Model
-from utils import train_diff_transform
+from utils import train_diff_transform, train_diff_transform2
 
 
 # train for one epoch to learn unique features
@@ -21,7 +35,7 @@ def train(net, data_loader, train_optimizer):
     total_loss, total_num, train_bar = 0.0, 0, tqdm(data_loader)
     for pos_1, pos_2, target in train_bar:
         pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
-        pos_1, pos_2 = train_diff_transform(pos_1), train_diff_transform(pos_2)
+        pos_1, pos_2 = train_diff_transform(pos_1), train_diff_transform2(pos_2)
 
         feature_1, out_1 = net(pos_1)
         feature_2, out_2 = net(pos_2)
@@ -94,16 +108,6 @@ def test(net, memory_data_loader, test_data_loader):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Train SimCLR')
-    parser.add_argument('--feature_dim', default=128, type=int, help='Feature dim for latent vector')
-    parser.add_argument('--temperature', default=0.5, type=float, help='Temperature used in softmax')
-    parser.add_argument('--k', default=200, type=int, help='Top k most similar images used to predict the label')
-    parser.add_argument('--batch_size', default=512, type=int, help='Number of images in each mini-batch')
-    parser.add_argument('--epochs', default=500, type=int, help='Number of sweeps over the dataset to train')
-    parser.add_argument('--arch', default='resnet18', type=str, help='The backbone of encoder')
-
-    # args parse
-    args = parser.parse_args()
     feature_dim, temperature, k = args.feature_dim, args.temperature, args.k
     batch_size, epochs = args.batch_size, args.epochs
 
@@ -138,7 +142,7 @@ if __name__ == '__main__':
         results['test_acc@5'].append(test_acc_5)
         # save statistics
         data_frame = pd.DataFrame(data=results, index=range(1, epoch + 1))
-        data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
+        # data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
         if test_acc_1 > best_acc:
             best_acc = test_acc_1
-            torch.save(model.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
+            # torch.save(model.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
