@@ -28,6 +28,8 @@ import utils
 from model import Model
 from utils import train_diff_transform, train_diff_transform2
 
+import datetime
+
 
 # train for one epoch to learn unique features
 def train(net, data_loader, train_optimizer):
@@ -129,20 +131,25 @@ if __name__ == '__main__':
     c = len(memory_data.classes)
 
     # training loop
-    results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': []}
-    save_name_pre = '{}_{}_{}_{}_{}'.format(feature_dim, temperature, k, batch_size, epochs)
+    results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_acc': [], 'best_acc_loss': []}
+    save_name_pre = 'differentiable_{}_{}_{}_{}'.format(datetime.datetime.now().strftime("%Y%m%d%H%M%S"), temperature, k, batch_size, epochs)
     if not os.path.exists('results'):
         os.mkdir('results')
     best_acc = 0.0
+    best_acc_loss = 7.1
     for epoch in range(1, epochs + 1):
         train_loss = train(model, train_loader, optimizer)
         results['train_loss'].append(train_loss)
         test_acc_1, test_acc_5 = test(model, memory_loader, test_loader)
         results['test_acc@1'].append(test_acc_1)
         results['test_acc@5'].append(test_acc_5)
-        # save statistics
-        data_frame = pd.DataFrame(data=results, index=range(1, epoch + 1))
-        # data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
         if test_acc_1 > best_acc:
             best_acc = test_acc_1
-            # torch.save(model.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
+            best_acc_loss = train_loss
+            torch.save(model.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
+        results['best_acc'].append(best_acc)
+        results['best_acc_loss'].append(best_acc_loss)
+
+        # save statistics
+        data_frame = pd.DataFrame(data=results, index=range(1, epoch + 1))
+        data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')

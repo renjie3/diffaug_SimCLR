@@ -4,8 +4,8 @@ MY_JOB_ROOT_PATH=`pwd`
 # echo $MY_JOB_ROOT_PATH
 cd $MY_JOB_ROOT_PATH
 
-JOB_INFO="Train simclr with differentiable data augmentation."
-MYCOMMEND="python main.py --batch_size 512 --epochs 1000 --arch resnet18"
+JOB_INFO="Train simclr with differentiable data augmentation. Removed Grayscale"
+MYCOMMEND="python main.py --batch_size 512 --epochs 1000 --arch resnet18 --feature_dim 2"
 
 cat ./slurm_files/sconfigs1.sb > submit.sb
 echo "JOB_INFO=\"${JOB_INFO}\"" >> submit.sb

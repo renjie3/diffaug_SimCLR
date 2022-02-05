@@ -102,3 +102,63 @@ Wed Oct 27 12:17:28 EDT 2021
 Train simclr with differentiable data augmentation.
 python main.py --batch_size 512 --epochs 1000 --arch resnet18
 ---------------------------------------------------------------
+Wed Oct 27 18:41:44 EDT 2021
+35874365
+Train simclr with differentiable data augmentation.
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+---------------------------------------------------------------
+Wed Oct 27 18:44:01 EDT 2021
+35874470
+Train simclr with differentiable data augmentation.
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+---------------------------------------------------------------
+Fri Oct 29 22:00:58 EDT 2021
+36067941
+Train simclr with differentiable data augmentation.
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+---------------------------------------------------------------
+Fri Oct 29 22:01:14 EDT 2021
+36067942
+Train simclr with differentiable data augmentation.
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+---------------------------------------------------------------
+Fri Oct 29 22:01:20 EDT 2021
+36067943
+Train simclr with differentiable data augmentation.
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+---------------------------------------------------------------
+Fri Oct 29 22:01:26 EDT 2021
+36067951
+Train simclr with differentiable data augmentation.
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+---------------------------------------------------------------
+Fri Oct 29 22:01:30 EDT 2021
+36067954
+Train simclr with differentiable data augmentation.
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+---------------------------------------------------------------
+Sun Oct 31 20:13:09 EDT 2021
+36121284
+Train simclr with differentiable data augmentation.
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+---------------------------------------------------------------
+Sun Oct 31 20:42:23 EDT 2021
+36121619
+Train simclr with differentiable data augmentation.
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+---------------------------------------------------------------
+Sun Oct 31 20:46:40 EDT 2021
+
+Train simclr with differentiable data augmentation.
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+---------------------------------------------------------------
+Mon Nov  1 10:58:43 EDT 2021
+36145975
+Train simclr with differentiable data augmentation. Removed Grayscale
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+---------------------------------------------------------------
+Sat Nov 20 15:55:50 EST 2021
+107554806
+Train simclr with differentiable data augmentation. Removed Grayscale
+python main.py --batch_size 512 --epochs 1000 --arch resnet18 --feature_dim 2
+---------------------------------------------------------------

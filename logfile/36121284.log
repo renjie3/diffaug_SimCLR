@@ -1,0 +1,45 @@
+Train simclr with differentiable data augmentation.
+python main.py --batch_size 512 --epochs 1000 --arch resnet18
+Files already downloaded and verified
+Files already downloaded and verified
+Files already downloaded and verified
+[INFO] Register count_convNd() for <class 'torch.nn.modules.conv.Conv2d'>.
+[INFO] Register count_bn() for <class 'torch.nn.modules.batchnorm.BatchNorm2d'>.
+[INFO] Register zero_ops() for <class 'torch.nn.modules.activation.ReLU'>.
+[91m[WARN] Cannot find rule for <class 'torchvision.models.resnet.BasicBlock'>. Treat it as zero Macs and zero Params.[00m
+[91m[WARN] Cannot find rule for <class 'torch.nn.modules.container.Sequential'>. Treat it as zero Macs and zero Params.[00m
+[INFO] Register count_adap_avgpool() for <class 'torch.nn.modules.pooling.AdaptiveAvgPool2d'>.
+[INFO] Register count_linear() for <class 'torch.nn.modules.linear.Linear'>.
+[INFO] Register count_bn() for <class 'torch.nn.modules.batchnorm.BatchNorm1d'>.
+[91m[WARN] Cannot find rule for <class 'model.Model'>. Treat it as zero Macs and zero Params.[00m
+# Model Params: 11.50M FLOPs: 556.98M
+JobId=36121284 JobName=SimCLR
+   UserId=renjie3(6007166) GroupId=cse(2010) MCS_label=N/A
+   Priority=23917 Nice=0 Account=cmse QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:18 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2021-10-31T20:13:09 EligibleTime=2021-10-31T20:13:09
+   AccrueTime=2021-10-31T20:13:09
+   StartTime=2021-10-31T20:19:00 EndTime=2021-10-31T22:19:00 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-10-31T20:19:00
+   Partition=cmse-gpu AllocNode:Sid=dev-amd20-v100:114846
+   ReqNodeList=nvl-001 ExcNodeList=(null)
+   NodeList=nvl-001
+   BatchHost=nvl-001
+   NumNodes=1 NumCPUs=2 NumTasks=1 CPUs/Task=2 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=2,mem=16G,node=1,billing=2490,gres/gpu=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=2 MinMemoryCPU=8G MinTmpDiskNode=0
+   Features=[intel14|intel16|intel18|amr|nvf] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/mnt/ufs18/home-145/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/submit.sb
+   WorkDir=/mnt/ufs18/home-145/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR
+   Comment=stdout=/mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/logfile/36121284.log 
+   StdErr=/mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/logfile/36121284.err
+   StdIn=/dev/null
+   StdOut=/mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/logfile/36121284.log
+   Power=
+   TresPerNode=gpu:1
+   NtasksPerTRES:0
+
