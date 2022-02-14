@@ -1,0 +1,3 @@
+MYCOMMEND="python main.py --batch_size 512 --epochs 50  --piermaro_whole_epoch 600 --arch resnet18  --train_mode inst_suppress --data_name cifar10_20000_4class --train_data_drop_last --load_model --load_model_path inst_suppress_45341141_1_20220208110327_0.5_200_512_piermaro_model --piermaro_restart_epoch 550"
+MYCOMMEND2="python main.py --batch_size 512 --epochs 50  --piermaro_whole_epoch 600 --arch resnet18  --train_mode inst_suppress --data_name cifar10_20000_4class --train_data_drop_last --reorder_reverse --load_model --load_model_path inst_suppress_45341141_2_20220208110327_0.5_200_512_piermaro_model --piermaro_restart_epoch 550"
+MYCOMMEND3="No_commend3 --load_model --load_model_path  --piermaro_restart_epoch 50"

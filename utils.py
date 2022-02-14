@@ -6,6 +6,7 @@ import torch.nn as nn
 import os
 import pickle
 from typing import Any, Callable, Optional, Tuple
+import numpy as np
 
 
 ToTensor_transform = transforms.Compose([
@@ -24,18 +25,19 @@ class CIFAR10Pair(CIFAR10):
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
         download: bool = False,
+        data_name: str = "cifar10_1024_4class"
     ) -> None:
 
         super(CIFAR10Pair, self).__init__(root, train=train, transform=transform, target_transform=target_transform, download=download)
-        sampled_filepath = os.path.join(root, "sampled_cifar10", "cifar10_1024_4class.pkl")
+        sampled_filepath = os.path.join(root, "sampled_cifar10", "{}.pkl".format(data_name))
         with open(sampled_filepath, "rb") as f:
             sampled_data = pickle.load(f)
         if train:
             self.data = sampled_data["train_data"]
-            self.targets = sampled_data["train_targets"]
+            self.targets = np.array(sampled_data["train_targets"])
         else:
             self.data = sampled_data["test_data"]
-            self.targets = sampled_data["test_targets"]
+            self.targets = np.array(sampled_data["test_targets"])
 
         # print("class_to_idx", self.class_to_idx)
 

@@ -1,0 +1,3 @@
+sleep 3s
+
+rm -f ./FLAG_ROOM/RUNNING_FLAG_45160890

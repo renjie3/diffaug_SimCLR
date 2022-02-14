@@ -1,18 +1,14 @@
 
-#print the information of a job into one file
-date >>${MY_ROOT_PATH}submit_history.log
-echo $SLURM_JOB_ID >>${MY_ROOT_PATH}submit_history.log
-echo $JOB_INFO >>${MY_ROOT_PATH}submit_history.log
-echo $MYCOMMEND >>${MY_ROOT_PATH}submit_history.log
-echo "---------------------------------------------------------------" >>${MY_ROOT_PATH}submit_history.log
+########## Command Lines for Job Running ##########
 
-echo $JOB_INFO
+module purge
+module load GCC/6.4.0-2.28 OpenMPI  ### load necessary modules.
+conda activate simclr
 
-# cd ${MY_ROOT_PATH}    ### change to the directory where your code is located.
+# JOB_INFO="Differentiable augmentation first version."
 
-echo $MYCOMMEND
-$MYCOMMEND
-###python main.py --batch_size 512 --epochs 1000 --arch resnet18
+# MYCOMMEND="python3 ssl_perturbation_save_model.py --config_path configs/cifar10 --exp_name path/to/your/experiment/folder --version resnet18 --train_data_type CIFAR10 --noise_shape 10 3 32 32 --epsilon 16 --num_steps 1 --step_size 3.2 --attack_type min-min --perturb_type classwise --universal_train_target 'classwise' --train_step 10 --epochs 151"
 
-scontrol show job $SLURM_JOB_ID     ### write job information to SLURM output file.
-### js -j $SLURM_JOB_ID   ### write resource usage to SLURM output file (powertools command).
+MY_ROOT_PATH="/mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/"
+
+cd ${MY_ROOT_PATH}

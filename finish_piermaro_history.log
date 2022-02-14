@@ -1,0 +1,70 @@
+Mon Feb  7 16:16:55 EST 2022
+45160890
+cifar10 baseline
+python main.py --batch_size 512 --epochs 100 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --half_batch --load_model --load_model_path inst_suppress_45160890_1_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 100 --load_model --load_model_path inst_suppress_45160890_1_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 200 --load_model --load_model_path inst_suppress_45160890_1_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 300 --load_model --load_model_path inst_suppress_45160890_1_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 400 --load_model --load_model_path inst_suppress_45160890_1_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 500 --load_model --load_model_path inst_suppress_45160890_1_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 600 --load_model --load_model_path inst_suppress_45160890_1_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 700 --load_model --load_model_path inst_suppress_45160890_1_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 800 --load_model --load_model_path inst_suppress_45160890_1_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 900
+python main.py --batch_size 512 --epochs 100 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --half_batch --reorder_reverse --load_model --load_model_path inst_suppress_45160890_2_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 100 --load_model --load_model_path inst_suppress_45160890_2_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 200 --load_model --load_model_path inst_suppress_45160890_2_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 300 --load_model --load_model_path inst_suppress_45160890_2_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 400 --load_model --load_model_path inst_suppress_45160890_2_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 500 --load_model --load_model_path inst_suppress_45160890_2_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 600 --load_model --load_model_path inst_suppress_45160890_2_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 700 --load_model --load_model_path inst_suppress_45160890_2_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 800 --load_model --load_model_path inst_suppress_45160890_2_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 900
+45160890 45160890 45160890 45160890 45160890 45160890 45160890 45160890 45160890 45160890
+---------------------------------------------------------------
+Mon Feb  7 16:18:56 EST 2022
+45160890
+cifar10 baseline
+python main.py --batch_size 512 --epochs 100 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --half_batch --load_model --load_model_path inst_suppress_45160890_1_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 900
+python main.py --batch_size 512 --epochs 100 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --half_batch --reorder_reverse --load_model --load_model_path inst_suppress_45160890_2_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 900
+45160890 45160890 45160890 45160890 45160890 45160890 45160890 45160890 45160890 45160890
+---------------------------------------------------------------
+Mon Feb  7 16:20:49 EST 2022
+45160890
+cifar10 baseline
+python main.py --batch_size 512 --epochs 100 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --half_batch --load_model --load_model_path inst_suppress_45160890_1_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 900
+python main.py --batch_size 512 --epochs 100 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --half_batch --reorder_reverse --load_model --load_model_path inst_suppress_45160890_2_20220205222842_0.5_200_512_piermaro_model --piermaro_whole_epoch 1000 --piermaro_restart_epoch 900
+45160890 45160890 45160890 45160890 45160890 45160890 45160890 45160890 45160890 45160890
+---------------------------------------------------------------
+Mon Feb  7 16:44:39 EST 2022
+45281166
+cifar10 baseline
+python main.py --batch_size 512 --epochs 2 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --half_batch --load_model --load_model_path normal_45281166_1_20220207163856_0.5_200_512_piermaro_model --piermaro_whole_epoch 10 --piermaro_restart_epoch 8
+python main.py --batch_size 512 --epochs 2 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --half_batch --reorder_reverse --load_model --load_model_path normal_45281166_2_20220207163856_0.5_200_512_piermaro_model --piermaro_whole_epoch 10 --piermaro_restart_epoch 8
+45281166 45281167 45281168 45281220 45281302
+---------------------------------------------------------------
+Mon Feb  7 21:26:11 EST 2022
+45302788
+cifar10 baseline
+python main.py --batch_size 512 --epochs 2 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --half_batch --load_model --load_model_path normal_45302788_1_20220207211857_0.5_200_512_piermaro_model --piermaro_whole_epoch 10 --piermaro_restart_epoch 8
+python main.py --batch_size 512 --epochs 2 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --half_batch --reorder_reverse --load_model --load_model_path normal_45302788_2_20220207211857_0.5_200_512_piermaro_model --piermaro_whole_epoch 10 --piermaro_restart_epoch 8
+45302788 45303782 45303929 45304737 45305127
+---------------------------------------------------------------
+Mon Feb  7 21:44:18 EST 2022
+45308331
+cifar10 baseline
+python main.py --batch_size 512 --epochs 2 --piermaro_whole_epoch 10 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --half_batch --load_model --load_model_path normal_45308331_1_20220207213552_0.5_200_512_piermaro_model --piermaro_restart_epoch 8
+python main.py --batch_size 512 --epochs 2 --piermaro_whole_epoch 10 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --half_batch --reorder_reverse --load_model --load_model_path normal_45308331_2_20220207213552_0.5_200_512_piermaro_model --piermaro_restart_epoch 8
+45308331 45308827 45309315 45309658 45309838
+---------------------------------------------------------------
+Tue Feb  8 22:12:26 EST 2022
+45341014
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 600 --arch resnet18 --train_mode inst_suppress --data_name cifar10_20000_4class --train_data_drop_last --half_batch --load_model --load_model_path inst_suppress_45341014_1_20220208110040_0.5_200_512_piermaro_model --piermaro_restart_epoch 550
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 600 --arch resnet18 --train_mode inst_suppress --data_name cifar10_20000_4class --train_data_drop_last --half_batch --reorder_reverse --load_model --load_model_path inst_suppress_45341014_2_20220208110040_0.5_200_512_piermaro_model --piermaro_restart_epoch 550
+45341014 45342749 45345176 45348755 45352779 45357565 45359659 45365585 45366587 45368438 45369629 45370648
+---------------------------------------------------------------
+Tue Feb  8 22:30:01 EST 2022
+45341010
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 600 --arch resnet18 --train_mode inst_suppress --data_name cifar10_20000_4class --train_data_drop_last --half_batch --load_model --load_model_path inst_suppress_45341010_1_20220208110040_0.5_200_512_piermaro_model --piermaro_restart_epoch 550
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 600 --arch resnet18 --train_mode inst_suppress --data_name cifar10_20000_4class --train_data_drop_last --half_batch --reorder_reverse --load_model --load_model_path inst_suppress_45341010_2_20220208110040_0.5_200_512_piermaro_model --piermaro_restart_epoch 550
+45341010 45342748 45345197 45348919 45355307 45358821 45359913 45366029 45366815 45369143 45369902 45371002
+---------------------------------------------------------------
+Tue Feb  8 23:33:28 EST 2022
+45341142
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 600 --arch resnet18 --train_mode inst_suppress --data_name cifar10_20000_4class --train_data_drop_last --load_model --load_model_path inst_suppress_45341142_1_20220208110521_0.5_200_512_piermaro_model --piermaro_restart_epoch 550
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 600 --arch resnet18 --train_mode inst_suppress --data_name cifar10_20000_4class --train_data_drop_last --reorder_reverse --load_model --load_model_path inst_suppress_45341142_2_20220208110521_0.5_200_512_piermaro_model --piermaro_restart_epoch 550
+45341142 45344305 45348414 45352056 45357210 45359422 45364713 45366516 45368385 45369754 45371009 45372439
+---------------------------------------------------------------
+Tue Feb  8 23:54:58 EST 2022
+45341141
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 600 --arch resnet18 --train_mode inst_suppress --data_name cifar10_20000_4class --train_data_drop_last --load_model --load_model_path inst_suppress_45341141_1_20220208110327_0.5_200_512_piermaro_model --piermaro_restart_epoch 550
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 600 --arch resnet18 --train_mode inst_suppress --data_name cifar10_20000_4class --train_data_drop_last --reorder_reverse --load_model --load_model_path inst_suppress_45341141_2_20220208110327_0.5_200_512_piermaro_model --piermaro_restart_epoch 550
+45341141 45344274 45348012 45351615 45357211 45359653 45365658 45366814 45369368 45370501 45371782 45373481
+---------------------------------------------------------------
