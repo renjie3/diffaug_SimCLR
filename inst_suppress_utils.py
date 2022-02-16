@@ -3,6 +3,7 @@ import torch
 import numpy as np
 from sklearn import metrics
 from tqdm import tqdm
+import time
 
 def get_batch_idx_group(total_num, batch_size=512, shuffle=False, drop_last=False):
     if shuffle:
@@ -105,9 +106,9 @@ def get_inst_sigma(net, pos_1, target, use_out=False):
 
     return inst_sigma.cpu().detach().numpy()
 
-def get_scheduler(new_batch_idx_list, epoch, whole_epoch, start_batch_num_ratio=0, scheduler_curve='0_0.5_1', flag_shuffle_new_batch_list=False):
+def get_scheduler(new_batch_idx_list, epoch, whole_epoch, batch_num, start_batch_num_ratio=0, scheduler_curve='0_0.5_1', flag_shuffle_new_batch_list=False):
 
-    batch_num = len(new_batch_idx_list)
+    # batch_num = len(new_batch_idx_list)
     if scheduler_curve == '0_0.5_1':
         schedule_batch_num = batch_num * (epoch - 1) // whole_epoch + 1
         schedule_batch_num = int((1 - start_batch_num_ratio) * schedule_batch_num + start_batch_num_ratio * batch_num)
@@ -130,6 +131,17 @@ def get_scheduler(new_batch_idx_list, epoch, whole_epoch, start_batch_num_ratio=
 
         return shuffle_new_batch_list
 
+def get_scheduler_length(batch_num, epoch, whole_epoch, start_batch_num_ratio=0, scheduler_curve='0_0.5_1'):
+
+    if scheduler_curve == '0_0.5_1':
+        schedule_batch_num = batch_num * (epoch - 1) // whole_epoch + 1
+        schedule_batch_num = int((1 - start_batch_num_ratio) * schedule_batch_num + start_batch_num_ratio * batch_num)
+    elif scheduler_curve == '0_1_1':
+        schedule_batch_num = batch_num * (epoch - 1) // (whole_epoch * 0.5) + 1
+        schedule_batch_num = int((1 - start_batch_num_ratio) * schedule_batch_num + start_batch_num_ratio * batch_num)
+
+    return schedule_batch_num
+
 def compare(a1, a2):
     reverse_num = 0
     for i in range(len(a1)):
@@ -144,7 +156,7 @@ def compare(a1, a2):
                     break
     return reverse_num
 
-def sample_from_mass(net, data_loader, epoch, batch_size, use_out=False, reverse=False, curriculum='', mass_candidate='mass_candidate', all_in=False, random_last_3batch=False):
+def sample_from_mass(net, data_loader, epoch, batch_size, scheduler_length, use_out=False, reverse=False, curriculum='', mass_candidate='mass_candidate', all_in=False, random_last_3batch=False, last_one_copy_previous=False):
     if all_in:
         # print('here')
         # input()
@@ -177,21 +189,25 @@ def sample_from_mass(net, data_loader, epoch, batch_size, use_out=False, reverse
 
     print("Curriculum sample_from_mass: resampling..")
 
+    time_test = 0.0
+
     tobe_batched_idx = np.arange(data_loader.data_source.data.shape[0])
     new_sampled_batch = []
     new_sampled_DBindex = []
-    for i in range(batch_num):
+    for i in range(scheduler_length):
         if random_last_3batch and i >= batch_num - 3:
             batched_id_candidate_sub = get_batch_idx_group(len(tobe_batched_idx), batch_size=batch_size, shuffle=True, drop_last=True)
             for batch_id_sub in batched_id_candidate_sub:
                 batch_id = tobe_batched_idx[batch_id_sub]
 
                 batched_feature = feature_bank[batch_id, :, :].reshape((-1, feature_bank.shape[2]))
-                batched_label = np.tile(label_bank[batch_id], (5,1)).transpose().reshape((-1))
-                batched_label_inst = np.tile(np.arange(batch_size), (5,1)).transpose().reshape((-1))
-                
-                inst_DB = metrics.davies_bouldin_score(batched_feature, batched_label_inst)
-                cluster_GT = metrics.davies_bouldin_score(batched_feature, batched_label)
+
+                if curriculum in ['DBindex_high2low', 'DBindex_ratio_inst_cluster_GT', 'DBindex_product_inst_cluster_GT']:
+                    batched_label_inst = np.tile(np.arange(batch_size), (5,1)).transpose().reshape((-1))
+                    inst_DB = metrics.davies_bouldin_score(batched_feature, batched_label_inst)
+                if curriculum in ['DBindex_cluster_GT', 'DBindex_ratio_inst_cluster_GT', 'DBindex_product_inst_cluster_GT', 'DBindex_cluster_GT_org_sample_only']:
+                    batched_label = np.tile(label_bank[batch_id], (5,1)).transpose().reshape((-1))
+                    cluster_GT = metrics.davies_bouldin_score(batched_feature, batched_label)
 
                 if curriculum == "DBindex_high2low":
                     new_sampled_DBindex.append(inst_DB)
@@ -207,6 +223,10 @@ def sample_from_mass(net, data_loader, epoch, batch_size, use_out=False, reverse
                 new_sampled_batch.append(batch_id)
             break
 
+        elif i == batch_num - 1 and i >= 1 and last_one_copy_previous:
+            new_sampled_batch.append(new_sampled_batch[0])
+            new_sampled_DBindex.append(new_sampled_DBindex[0])
+
         else:
             candidate_batch_list = []
             DBindex_list =[]
@@ -216,14 +236,16 @@ def sample_from_mass(net, data_loader, epoch, batch_size, use_out=False, reverse
                 for j in range(len(batched_id_candidate_sub)):
                     batched_id_candidate = tobe_batched_idx[batched_id_candidate_sub[j]]
                     batched_feature = feature_bank[batched_id_candidate, :, :].reshape((-1, feature_bank.shape[2]))
-                    batched_label = np.tile(label_bank[batched_id_candidate], (5,1)).transpose().reshape((-1))
-                    batched_label_inst = np.tile(np.arange(batch_size), (5,1)).transpose().reshape((-1))
+
+                    if curriculum in ['DBindex_high2low', 'DBindex_ratio_inst_cluster_GT', 'DBindex_product_inst_cluster_GT']:
+                        batched_label_inst = np.tile(np.arange(batch_size), (5,1)).transpose().reshape((-1))
+                        inst_DB = metrics.davies_bouldin_score(batched_feature, batched_label_inst)
+                    if curriculum in ['DBindex_cluster_GT', 'DBindex_ratio_inst_cluster_GT', 'DBindex_product_inst_cluster_GT', 'DBindex_cluster_GT_org_sample_only']:
+                        batched_label = np.tile(label_bank[batched_id_candidate], (5,1)).transpose().reshape((-1))
+                        cluster_GT = metrics.davies_bouldin_score(batched_feature, batched_label)
 
                     candidate_batch_list.append(batched_id_candidate)
                     candidate_batch_sub.append(batched_id_candidate_sub[j])
-                    
-                    inst_DB = metrics.davies_bouldin_score(batched_feature, batched_label_inst)
-                    cluster_GT = metrics.davies_bouldin_score(batched_feature, batched_label)
 
                     if curriculum == "DBindex_high2low":
                         DBindex_list.append(inst_DB)
@@ -248,12 +270,7 @@ def sample_from_mass(net, data_loader, epoch, batch_size, use_out=False, reverse
                 tobe_batched_idx = np.delete(tobe_batched_idx, removed_sub)
             elif mass_candidate == 'mass_candidate_replacement':
                 pass
-    
     print("Curriculum sample_from_mass: resampling DONE.")
-
-    # if reverse:
-    #     new_sampled_batch = new_sampled_batch[::-1]
-    #     new_sampled_DBindex = new_sampled_DBindex[::-1]
 
     # test_id = np.zeros(1024)
     # for group in new_sampled_batch:
@@ -358,9 +375,9 @@ def reorder_DBindex(net, batch_idx_list, data_loader, epoch, use_out=False, reve
             # print(batch_DBindex[i])
             new_batch_idx_list.append(batch_idx_list[i])
 
-        print(new_batch_idx_list)
-        print(np.array(batch_GT_DBindex)[neworder])
-        input()
+        # print(new_batch_idx_list)
+        # print(np.array(batch_GT_DBindex)[neworder])
+        # input()
 
         return new_batch_idx_list
         

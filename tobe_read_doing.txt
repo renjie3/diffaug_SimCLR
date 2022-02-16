@@ -1,0 +1,342 @@
+Mon Feb 14 09:33:22 EST 2022
+45623234
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:22 EST 2022
+45623235
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:22 EST 2022
+45623236
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:22 EST 2022
+45623237
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:23 EST 2022
+45623238
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:23 EST 2022
+45623239
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:23 EST 2022
+45623240
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:23 EST 2022
+45623241
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+
+
+Mon Feb 14 09:33:39 EST 2022
+45623250
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:39 EST 2022
+45623251
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:39 EST 2022
+45623252
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:39 EST 2022
+45623253
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:39 EST 2022
+45623254
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:39 EST 2022
+45623255
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:40 EST 2022
+45623256
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:40 EST 2022
+45623257
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+
+
+Mon Feb 14 09:33:45 EST 2022
+45623258
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:45 EST 2022
+45623259
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:45 EST 2022
+45623260
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:46 EST 2022
+45623261
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:46 EST 2022
+45623262
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:46 EST 2022
+45623263
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:46 EST 2022
+45623264
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:33:46 EST 2022
+45623265
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:42:37 EST 2022
+45623374
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+
+
+Mon Feb 14 09:45:38 EST 2022
+45623571
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:45:39 EST 2022
+45623572
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:45:39 EST 2022
+45623573
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:45:39 EST 2022
+45623574
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:45:39 EST 2022
+45623575
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:45:40 EST 2022
+45623576
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:45:40 EST 2022
+45623577
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:45:40 EST 2022
+45623578
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+
+Mon Feb 14 09:48:58 EST 2022
+45623688
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:48:58 EST 2022
+45623689
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:48:58 EST 2022
+45623690
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:48:58 EST 2022
+45623691
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:48:58 EST 2022
+45623692
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:48:58 EST 2022
+45623693
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:48:58 EST 2022
+45623694
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+---------------------------------------------------------------
+Mon Feb 14 09:48:59 EST 2022
+45623695
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0 --curriculum_scheduler 0_1_1
+python main.py --batch_size 128 --epochs 1389 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0 
+
+---------------------------------------------------------------
+Mon Feb 14 11:15:14 EST 2022
+45628827
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:15:14 EST 2022
+45628828
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:15:14 EST 2022
+45628829
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:15:14 EST 2022
+45628830
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:15:14 EST 2022
+45628831
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:15:14 EST 2022
+45628832
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:15:14 EST 2022
+45628833
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+
+---------------------------------------------------------------
+Mon Feb 14 11:16:45 EST 2022
+45629060
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:16:45 EST 2022
+45629061
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:16:45 EST 2022
+45629062
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:16:46 EST 2022
+45629063
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:16:46 EST 2022
+45629064
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:16:46 EST 2022
+45629065
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:16:46 EST 2022
+45629066
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+---------------------------------------------------------------
+Mon Feb 14 11:16:46 EST 2022
+45629067
+cifar10 baseline
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+python main.py --batch_size 128 --epochs 1167 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
