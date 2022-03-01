@@ -15,3 +15,4 @@ path/
 my_experiments/
 logfile/
 FLAG_ROOM/
+data/sampled_cifar10/

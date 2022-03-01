@@ -4,8 +4,8 @@ MY_JOB_ROOT_PATH=`pwd`
 # echo $MY_JOB_ROOT_PATH
 cd $MY_JOB_ROOT_PATH
 
-MYTIME="9:50:00"
-MYCPU="3"
+MYTIME="3:50:00"
+MYCPU="5"
 MYGPUTYPE="v100"
 
 JOB_INFO="cifar10 baseline"
@@ -14,14 +14,17 @@ JOB_INFO="cifar10 baseline"
 # MYCOMMEND2="python main.py --batch_size 512 --epochs 300 --arch resnet18 --data_name cifar10_20000_4class --train_mode inst_suppress --not_shuffle_train_data"
 
 # 1778 0 1600 0.25 1333 0.5
-# 1389 0 1167 0.5 
+# 1389 0 1167 0.5
 # normal 1021
 # 'DBindex_high2low', 'DBindex_cluster_GT', 'DBindex_ratio_inst_cluster_GT', ### 'DBindex_product_inst_cluster_GT', #####'DBindex_cluster_GT_org_sample_only'
 # all_in_flag random_last_3batch random_initial_model1
+# whole_cifar10 
+# --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
+# normal_45921554_1_20220219224232_0.5_200_128_model
 
-MYCOMMEND="python main.py --batch_size 128 --epochs 2000 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader"
+MYCOMMEND="python main.py --batch_size 128 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_product_inst_cluster_GT --perturb_batchsize 0 --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_alpha 2 --attack_steps 4 --weight_dbindex_loss 1"
 
-MYCOMMEND2="python main.py --batch_size 128 --epochs 2000 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_ratio_inst_cluster_GT --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --reorder_reverse --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader"
+MYCOMMEND2="python main.py --batch_size 128 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_product_inst_cluster_GT --perturb_batchsize 0 --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --reorder_reverse --attack_alpha 2 --attack_steps 4 --weight_dbindex_loss 1"
 
 MYCOMMEND3="python main.py --batch_size 128 --epochs 1000 --arch resnet18 --data_name cifar10_1024_4class --train_mode normal --train_data_drop_last"
 

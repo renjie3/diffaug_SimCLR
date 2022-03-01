@@ -63,8 +63,8 @@ for job_id in job_ids:
         
 
 # ±
-job1_test_acc_results += job2_test_acc_results
-job1_train_loss_acc_results += job2_train_loss_acc_results
+# job1_test_acc_results += job2_test_acc_results
+# job1_train_loss_acc_results += job2_train_loss_acc_results
 
 std_list.append(np.std(job1_test_acc_results))
 std_list.append(np.std(job1_train_loss_acc_results))

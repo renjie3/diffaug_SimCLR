@@ -19,6 +19,13 @@ def get_batch_idx_group(total_num, batch_size=512, shuffle=False, drop_last=Fals
         batch_idx_list.append(perm_id[i*batch_size:min(total_num, (i+1)*batch_size)])
     return batch_idx_list
 
+def get_total_batch_num(total_num, batch_size=512, drop_last=False):
+    if drop_last:
+        batch_num = total_num // batch_size
+    else:
+        batch_num = (total_num - 1) // batch_size + 1
+    return batch_num
+
 def get_batch_DBindex(net, pos_1, target, use_out=False, DBindex_use_org_sample=False, curriculum=''):
     net.eval()
     org_sample = pos_1.cuda(non_blocking=True)
@@ -106,6 +113,21 @@ def get_inst_sigma(net, pos_1, target, use_out=False):
 
     return inst_sigma.cpu().detach().numpy()
 
+def get_decrease_inst_sigma_id(net, batch_idx_list, data_loader, reverse, use_out=False):
+    batch_idx_bar = tqdm(batch_idx_list, desc="Reordering")
+    inst_sigma = []
+    for batch_idx in batch_idx_bar:
+        pos_1, target = data_loader.get_batch(batch_idx)
+        inst_sigma.append(get_inst_sigma(net, pos_1, target, use_out))
+    
+    inst_sigma = np.concatenate(inst_sigma, axis=0)
+    if reverse:
+        inst_sigma_decrease_idx = np.argsort(inst_sigma)
+    else:
+        inst_sigma_decrease_idx = np.argsort(-inst_sigma)
+
+    return inst_sigma_decrease_idx
+
 def get_scheduler(new_batch_idx_list, epoch, whole_epoch, batch_num, start_batch_num_ratio=0, scheduler_curve='0_0.5_1', flag_shuffle_new_batch_list=False):
 
     # batch_num = len(new_batch_idx_list)
@@ -156,7 +178,7 @@ def compare(a1, a2):
                     break
     return reverse_num
 
-def sample_from_mass(net, data_loader, epoch, batch_size, scheduler_length, use_out=False, reverse=False, curriculum='', mass_candidate='mass_candidate', all_in=False, random_last_3batch=False):
+def sample_from_mass(net, data_loader, epoch, batch_size, scheduler_length, candidate_pool_size, use_out=False, reverse=False, curriculum='', mass_candidate='mass_candidate', all_in=False, random_last_3batch=False, last_one_copy_previous=False):
     if all_in:
         # print('here')
         # input()
@@ -200,30 +222,30 @@ def sample_from_mass(net, data_loader, epoch, batch_size, scheduler_length, use_
             for batch_id_sub in batched_id_candidate_sub:
                 batch_id = tobe_batched_idx[batch_id_sub]
 
-                batched_feature = feature_bank[batch_id, :, :].reshape((-1, feature_bank.shape[2]))
+                # batched_feature = feature_bank[batch_id, :, :].reshape((-1, feature_bank.shape[2]))
 
-                if curriculum in ['DBindex_high2low', 'DBindex_ratio_inst_cluster_GT', 'DBindex_product_inst_cluster_GT']:
-                    batched_label_inst = np.tile(np.arange(batch_size), (5,1)).transpose().reshape((-1))
-                    inst_DB = metrics.davies_bouldin_score(batched_feature, batched_label_inst)
-                if curriculum in ['DBindex_cluster_GT', 'DBindex_ratio_inst_cluster_GT', 'DBindex_product_inst_cluster_GT', 'DBindex_cluster_GT_org_sample_only']:
-                    batched_label = np.tile(label_bank[batch_id], (5,1)).transpose().reshape((-1))
-                    cluster_GT = metrics.davies_bouldin_score(batched_feature, batched_label)
+                # if curriculum in ['DBindex_high2low', 'DBindex_ratio_inst_cluster_GT', 'DBindex_product_inst_cluster_GT']:
+                #     batched_label_inst = np.tile(np.arange(batch_size), (5,1)).transpose().reshape((-1))
+                #     inst_DB = metrics.davies_bouldin_score(batched_feature, batched_label_inst)
+                # if curriculum in ['DBindex_cluster_GT', 'DBindex_ratio_inst_cluster_GT', 'DBindex_product_inst_cluster_GT', 'DBindex_cluster_GT_org_sample_only']:
+                #     batched_label = np.tile(label_bank[batch_id], (5,1)).transpose().reshape((-1))
+                #     cluster_GT = metrics.davies_bouldin_score(batched_feature, batched_label)
 
-                if curriculum == "DBindex_high2low":
-                    new_sampled_DBindex.append(inst_DB)
-                elif curriculum == "DBindex_cluster_GT":
-                    new_sampled_DBindex.append(-cluster_GT)
-                elif curriculum == "DBindex_ratio_inst_cluster_GT":
-                    new_sampled_DBindex.append(inst_DB / cluster_GT)
-                elif curriculum == "DBindex_product_inst_cluster_GT":
-                    new_sampled_DBindex.append(inst_DB * cluster_GT)
-                elif curriculum == "DBindex_cluster_GT_org_sample_only":
-                    new_sampled_DBindex.append(-cluster_GT)
+                # if curriculum == "DBindex_high2low":
+                #     new_sampled_DBindex.append(inst_DB)
+                # elif curriculum == "DBindex_cluster_GT":
+                #     new_sampled_DBindex.append(-cluster_GT)
+                # elif curriculum == "DBindex_ratio_inst_cluster_GT":
+                #     new_sampled_DBindex.append(inst_DB / cluster_GT)
+                # elif curriculum == "DBindex_product_inst_cluster_GT":
+                #     new_sampled_DBindex.append(inst_DB * cluster_GT)
+                # elif curriculum == "DBindex_cluster_GT_org_sample_only":
+                #     new_sampled_DBindex.append(-cluster_GT)
 
                 new_sampled_batch.append(batch_id)
             break
 
-        elif i == batch_num - 1 and i >= 1:
+        elif i == batch_num - 1 and i >= 1 and last_one_copy_previous:
             new_sampled_batch.append(new_sampled_batch[0])
             new_sampled_DBindex.append(new_sampled_DBindex[0])
 
@@ -231,7 +253,7 @@ def sample_from_mass(net, data_loader, epoch, batch_size, scheduler_length, use_
             candidate_batch_list = []
             DBindex_list =[]
             candidate_batch_sub = []
-            for _ in range(10):
+            for _ in range(candidate_pool_size):
                 batched_id_candidate_sub = get_batch_idx_group(len(tobe_batched_idx), batch_size=batch_size, shuffle=True, drop_last=True)
                 for j in range(len(batched_id_candidate_sub)):
                     batched_id_candidate = tobe_batched_idx[batched_id_candidate_sub[j]]

@@ -68,3 +68,10 @@ python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 600 --arch re
 python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 600 --arch resnet18 --train_mode inst_suppress --data_name cifar10_20000_4class --train_data_drop_last --reorder_reverse --load_model --load_model_path inst_suppress_45341141_2_20220208110327_0.5_200_512_piermaro_model --piermaro_restart_epoch 550
 45341141 45344274 45348012 45351615 45357211 45359653 45365658 45366814 45369368 45370501 45371782 45373481
 ---------------------------------------------------------------
+Wed Feb 23 20:50:03 EST 2022
+46103542
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1350
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1350
+46103542 46105486 46106452 46106692 46106813 46106853 46108102 46108378 46109051 46109305 46110546 46110693 46110860 46110988 46111188 46111382 46111819 46112350 46112871 46113591 46113897 46114032 46114134 46114360 46114484 46114537 46114609 46114725
+---------------------------------------------------------------

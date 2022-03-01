@@ -7,14 +7,58 @@ parser.add_argument('--k', default=200, type=int, help='Top k most similar image
 parser.add_argument('--batch_size', default=512, type=int, help='Number of images in each mini-batch')
 parser.add_argument('--epochs', default=500, type=int, help='Number of sweeps over the dataset to train')
 parser.add_argument('--arch', default='resnet18', type=str, help='The backbone of encoder')
-parser.add_argument('--local_dev', action='store_true', default=False)
+parser.add_argument('--local', default='', type=str, help='Run on dev node.')
+parser.add_argument('--job_id', default='local', type=str, help='job_id')
+parser.add_argument('--no_save', action='store_true', default=False)
+parser.add_argument('--data_name', default='whole_cifar10', type=str, help='The backbone of encoder')
+parser.add_argument('--not_shuffle_train_data', action='store_true', default=False)
+parser.add_argument('--train_data_drop_last', action='store_true', default=False)
+parser.add_argument('--use_out_reorder', action='store_true', default=False)
+parser.add_argument('--reorder_reverse', action='store_true', default=False)
+parser.add_argument('--half_batch', action='store_true', default=False)
+parser.add_argument('--train_mode', default='normal', type=str, choices=['normal', 'inst_suppress', 'curriculum', 'just_plot', 'auto_aug', 'adversarial_training'], help='What samples to plot')
+parser.add_argument('--curriculum', default='', type=str, choices=['', 'no', 'DBindex_high2low', 'DBindex_cluster_GT', 'DBindex_ratio_inst_cluster_GT', 'DBindex_product_inst_cluster_GT', 'DBindex_cluster_GT_org_sample_only', 'mass_candidate', 'mass_candidate_replacement'], help='How to reorder curriculum learning.')
+parser.add_argument('--mass_candidate', default='', type=str, choices=['', 'mass_candidate', 'mass_candidate_replacement'], help='How to')
+parser.add_argument('--curriculum_scheduler', default='0_0.5_1', type=str, choices=['', '0_0.5_1', '0_1_1'], help='curriculum_scheduler')
+parser.add_argument('--load_model', action='store_true', default=False)
+parser.add_argument('--load_model_path', default='', type=str, help='Path to load model.')
+parser.add_argument('--piermaro_whole_epoch', default='', type=str, help='Whole epoch when use re_job to train')
+parser.add_argument('--piermaro_restart_epoch', default=0, type=int, help='The order of epoch when use re_job to train')
+parser.add_argument('--start_batch_num_ratio', default=0, type=float, help='start_batch_num_ratio')
+parser.add_argument('--DBindex_use_org_sample', action='store_true', default=False)
+parser.add_argument('--my_train_loader', action='store_true', default=False)
+parser.add_argument('--my_test_loader', action='store_true', default=False)
+parser.add_argument('--shuffle_new_batch_list', action='store_true', default=False)
+parser.add_argument('--all_in_flag', action='store_true', default=False)
+parser.add_argument('--random_last_3batch', action='store_true', default=False)
+parser.add_argument('--debug', action='store_true', default=False)
+parser.add_argument('--pretrain_model_path', default='', type=str, help='Use pretrained model to get DBindex')
+parser.add_argument('--candidate_pool_size', default=10, type=int, help='candidate_pool_size')
+parser.add_argument('--change_batch_step', default=1, type=int, help='change_batch_step')
+parser.add_argument('--drop_last_new_batch', default=0, type=int, help='change_batch_step')
+parser.add_argument('--inst_suppress_sheduler_gap', default=100, type=int, help='change_batch_step')
+parser.add_argument('--augmentation_prob', default=[0, 0, 0, 0], nargs='+', type=float, help='get augmentation by probility')
+parser.add_argument('--save_aug_file_name', default='temp.txt', type=str, help='save_aug_file_name')
+parser.add_argument('--color_jitter_strength', default=1, type=float, help='change_batch_step')
+parser.add_argument('--ifm_epsilon', default=0.0, type=float, help='ifm_epsilon')
+parser.add_argument('--attack_epsilon', default=8, type=float, help='attack_epsilon')
+parser.add_argument('--attack_alpha', default=0.8, type=float, help='attack_alpha')
+parser.add_argument('--attack_type', default='linf', type=str, help='attack_type')
+
+parser.add_argument('--attack_steps', default=10, type=int, help='perturb number of steps')
+
+# parser.add_argument('--train_data_drop_last', action='store_true', default=False)
 
 # args parse
 args = parser.parse_args()
 
+flag_shuffle_train_data = not args.not_shuffle_train_data
+attack_epsilon = args.attack_epsilon / 255.0
+attack_alpha = args.attack_alpha / 255.0
+
 import os
-if args.local_dev:
-    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+if args.local != '':
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.local
 
 import pandas as pd
 import torch
@@ -23,131 +67,609 @@ from thop import profile, clever_format
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+import numpy as np
+from sklearn import metrics
+
 import utils
 from model import Model
-from utils import train_diff_transform, train_diff_transform2
+from utils import train_diff_transform, train_diff_transform_prob, test_instance_sim
+
+from inst_suppress_utils import *
+from auto_aug_utils import *
+
+from attack import PGD
 
 import datetime
 
-# train for one epoch to learn unique features
-def train(net, data_loader, train_optimizer):
+if torch.cuda.is_available():
+    torch.backends.cudnn.enabled = True
+    torch.backends.cudnn.benchmark = True
+    device = torch.device('cuda')
+    device_list = [torch.cuda.get_device_name(i) for i in range(0, torch.cuda.device_count())]
+else:
+    device = torch.device('cpu')
+
+def train_batch(net, pos_1, pos_2, target, train_optimizer, ifm_epsilon):
+
+    if np.sum(args.augmentation_prob) != 0:
+        my_transform = train_diff_transform_prob(*args.augmentation_prob)
+    else:
+        my_transform = train_diff_transform
+    
     net.train()
-    total_loss, total_num, train_bar = 0.0, 0, tqdm(data_loader)
-    for pos_1, pos_2, target in train_bar:
-        pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
-        pos_1, pos_2 = train_diff_transform(pos_1), train_diff_transform2(pos_2)
+    pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
+    pos_1, pos_2 = my_transform(pos_1), my_transform(pos_2)
 
-        feature_1, out_1 = net(pos_1)
-        feature_2, out_2 = net(pos_2)
-        # [2*B, D]
-        out = torch.cat([out_1, out_2], dim=0)
-        # [2*B, 2*B]
-        sim_matrix = torch.exp(torch.mm(out, out.t().contiguous()) / temperature)
-        mask = (torch.ones_like(sim_matrix) - torch.eye(2 * batch_size, device=sim_matrix.device)).bool()
-        # [2*B, 2*B-1]
-        sim_matrix = sim_matrix.masked_select(mask).view(2 * batch_size, -1)
+    feature_1, out_1 = net(pos_1)
+    feature_2, out_2 = net(pos_2)
+    # [2*B, D]
+    out = torch.cat([out_1, out_2], dim=0)
+    # [2*B, 2*B]
+    sim_matrix_before_exp = torch.mm(out, out.t().contiguous()) + ifm_epsilon
+    pos_den_mask1 = torch.cat([torch.zeros((pos_1.shape[0], pos_1.shape[0]), device=pos_1.device), torch.eye(pos_1.shape[0], device=pos_1.device)], dim=0)
+    pos_den_mask2 = torch.cat([torch.eye(pos_1.shape[0], device=pos_1.device), torch.zeros((pos_1.shape[0], pos_1.shape[0]), device=pos_1.device)], dim=0)
+    pos_den_mask = torch.cat([pos_den_mask1, pos_den_mask2], dim=1) * 2 * ifm_epsilon
+    sim_matrix_before_exp -= pos_den_mask
 
-        # compute loss
-        pos_sim = torch.exp(torch.sum(out_1 * out_2, dim=-1) / temperature)
-        # [2*B]
-        pos_sim = torch.cat([pos_sim, pos_sim], dim=0)
-        loss = (- torch.log(pos_sim / sim_matrix.sum(dim=-1))).mean()
-        train_optimizer.zero_grad()
-        loss.backward()
-        train_optimizer.step()
+    sim_matrix = torch.exp(sim_matrix_before_exp / temperature)
+    this_batch_size = pos_1.shape[0]
+    mask = (torch.ones_like(sim_matrix) - torch.eye(2 * this_batch_size, device=sim_matrix.device)).bool()
+    # [2*B, 2*B-1]
+    sim_matrix = sim_matrix.masked_select(mask).view(2 * this_batch_size, -1)
 
-        total_num += batch_size
-        total_loss += loss.item() * batch_size
-        train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
+    # compute loss
+    pos_sim = torch.exp((torch.sum(out_1 * out_2, dim=-1) - ifm_epsilon) / temperature)
+    # [2*B]
+    pos_sim = torch.cat([pos_sim, pos_sim], dim=0)
+    loss = (- torch.log(pos_sim / sim_matrix.sum(dim=-1))).mean()
+    train_optimizer.zero_grad()
+    loss.backward()
+    train_optimizer.step()
 
-    return total_loss / total_num
-
+    return loss.item() * this_batch_size, this_batch_size
 
 # test for one epoch, use weighted knn to find the most similar images' label to assign the test image
-def test(net, memory_data_loader, test_data_loader):
+def test(net, memory_data_loader, test_data_loader, epoch, epochs, ):
+    if args.my_test_loader:
+        memory_batch_idx_list = get_batch_idx_group(memory_data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=False, drop_last=False)
+        test_batch_idx_list = get_batch_idx_group(test_data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=False, drop_last=False)
     net.eval()
     total_top1, total_top5, total_num, feature_bank = 0.0, 0.0, 0, []
     with torch.no_grad():
         # generate feature bank
-        for data, _, target in tqdm(memory_data_loader, desc='Feature extracting'):
-            feature, out = net(data.cuda(non_blocking=True))
-            feature_bank.append(feature)
-        # [D, N]
-        feature_bank = torch.cat(feature_bank, dim=0).t().contiguous()
-        # [N]
-        feature_labels = torch.tensor(memory_data_loader.dataset.targets, device=feature_bank.device)
+        if args.my_test_loader:
+            for batch_idx in tqdm(memory_batch_idx_list, desc='Feature extracting'):
+                data, target = memory_data_loader.get_batch(batch_idx)
+                feature, out = net(data.cuda(non_blocking=True))
+                feature_bank.append(feature)
+            # [D, N]
+            feature_bank = torch.cat(feature_bank, dim=0).t().contiguous()
+            feature_labels = torch.tensor(memory_data_loader.data_source.targets, device=feature_bank.device)
+        else:
+            for data, _, target in tqdm(memory_data_loader, desc='Feature extracting'):
+                feature, out = net(data.cuda(non_blocking=True))
+                feature_bank.append(feature)
+            # [D, N]
+            feature_bank = torch.cat(feature_bank, dim=0).t().contiguous()
+            feature_labels = torch.tensor(memory_data_loader.dataset.targets, device=feature_bank.device)
+        # # [D, N]
+        # feature_bank = torch.cat(feature_bank, dim=0).t().contiguous()
         # loop test data to predict the label by weighted knn search
-        test_bar = tqdm(test_data_loader)
-        for data, _, target in test_bar:
-            data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
-            feature, out = net(data)
+        if args.my_test_loader:
+            test_bar = tqdm(test_batch_idx_list)
+            for batch_id in test_bar:
+                data, target = test_data_loader.get_batch(batch_id)
+                data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
+                feature, out = net(data)
 
-            total_num += data.size(0)
-            # compute cos similarity between each feature vector and feature bank ---> [B, N]
-            sim_matrix = torch.mm(feature, feature_bank)
-            # [B, K]
-            sim_weight, sim_indices = sim_matrix.topk(k=k, dim=-1)
-            # [B, K]
-            sim_labels = torch.gather(feature_labels.expand(data.size(0), -1), dim=-1, index=sim_indices)
-            sim_weight = (sim_weight / temperature).exp()
+                total_num += data.size(0)
+                # compute cos similarity between each feature vector and feature bank ---> [B, N]
+                sim_matrix = torch.mm(feature, feature_bank)
+                # [B, K]
+                sim_weight, sim_indices = sim_matrix.topk(k=k, dim=-1)
+                # [B, K]
+                sim_labels = torch.gather(feature_labels.expand(data.size(0), -1), dim=-1, index=sim_indices)
+                sim_weight = (sim_weight / temperature).exp()
 
-            # counts for each class
-            one_hot_label = torch.zeros(data.size(0) * k, c, device=sim_labels.device)
-            # [B*K, C]
-            one_hot_label = one_hot_label.scatter(dim=-1, index=sim_labels.view(-1, 1), value=1.0)
-            # weighted score ---> [B, C]
-            pred_scores = torch.sum(one_hot_label.view(data.size(0), -1, c) * sim_weight.unsqueeze(dim=-1), dim=1)
+                # counts for each class
+                one_hot_label = torch.zeros(data.size(0) * k, c, device=sim_labels.device)
+                # [B*K, C]
+                one_hot_label = one_hot_label.scatter(dim=-1, index=sim_labels.view(-1, 1), value=1.0)
+                # weighted score ---> [B, C]
+                pred_scores = torch.sum(one_hot_label.view(data.size(0), -1, c) * sim_weight.unsqueeze(dim=-1), dim=1)
 
-            pred_labels = pred_scores.argsort(dim=-1, descending=True)
-            total_top1 += torch.sum((pred_labels[:, :1] == target.unsqueeze(dim=-1)).any(dim=-1).float()).item()
-            total_top5 += torch.sum((pred_labels[:, :5] == target.unsqueeze(dim=-1)).any(dim=-1).float()).item()
-            test_bar.set_description('Test Epoch: [{}/{}] Acc@1:{:.2f}% Acc@5:{:.2f}%'
-                                     .format(epoch, epochs, total_top1 / total_num * 100, total_top5 / total_num * 100))
+                pred_labels = pred_scores.argsort(dim=-1, descending=True)
+                total_top1 += torch.sum((pred_labels[:, :1] == target.unsqueeze(dim=-1)).any(dim=-1).float()).item()
+                total_top5 += torch.sum((pred_labels[:, :5] == target.unsqueeze(dim=-1)).any(dim=-1).float()).item()
+                test_bar.set_description('Test Epoch: [{}/{}] Acc@1:{:.2f}% Acc@5:{:.2f}%'
+                                        .format(epoch, epochs, total_top1 / total_num * 100, total_top5 / total_num * 100))
+        else:
+            test_bar = tqdm(test_data_loader)
+            for data, _, target in test_bar:
+                data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
+                feature, out = net(data)
+
+                total_num += data.size(0)
+                # compute cos similarity between each feature vector and feature bank ---> [B, N]
+                sim_matrix = torch.mm(feature, feature_bank)
+                # [B, K]
+                sim_weight, sim_indices = sim_matrix.topk(k=k, dim=-1)
+                # [B, K]
+                sim_labels = torch.gather(feature_labels.expand(data.size(0), -1), dim=-1, index=sim_indices)
+                sim_weight = (sim_weight / temperature).exp()
+
+                # counts for each class
+                one_hot_label = torch.zeros(data.size(0) * k, c, device=sim_labels.device)
+                # [B*K, C]
+                one_hot_label = one_hot_label.scatter(dim=-1, index=sim_labels.view(-1, 1), value=1.0)
+                # weighted score ---> [B, C]
+                pred_scores = torch.sum(one_hot_label.view(data.size(0), -1, c) * sim_weight.unsqueeze(dim=-1), dim=1)
+
+                pred_labels = pred_scores.argsort(dim=-1, descending=True)
+                total_top1 += torch.sum((pred_labels[:, :1] == target.unsqueeze(dim=-1)).any(dim=-1).float()).item()
+                total_top5 += torch.sum((pred_labels[:, :5] == target.unsqueeze(dim=-1)).any(dim=-1).float()).item()
+                test_bar.set_description('Test Epoch: [{}/{}] Acc@1:{:.2f}% Acc@5:{:.2f}%'
+                                        .format(epoch, epochs, total_top1 / total_num * 100, total_top5 / total_num * 100))
 
     return total_top1 / total_num * 100, total_top5 / total_num * 100
 
+# train for one epoch to learn unique features
+def train(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre):
+
+    if args.load_model and args.piermaro_whole_epoch != '':
+        results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
+        for key in results.keys():
+            load_list = []
+            for i in range(len(results[key])):
+                load_list.append(results[key][i+1])
+            results[key] = load_list
+    else:
+        results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': []}
+    if not os.path.exists('results'):
+        os.mkdir('results')
+    best_test_acc = 0.0
+    best_test_acc_loss = 7.1
+    best_train_loss = 10
+    best_train_loss_acc = 0.0
+    for epoch in range(1, epochs + 1):
+        if args.my_train_loader:
+            batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=flag_shuffle_train_data, drop_last=args.train_data_drop_last)
+        net.train()
+        total_loss, total_num = 0.0, 0
+        if args.my_train_loader:
+            train_bar = tqdm(batch_idx_list)
+            for batch_idx in train_bar:
+                pos_1, target = data_loader.get_batch(batch_idx)
+                this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon)
+
+                total_num += this_batch_size
+                total_loss += this_loss
+                train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
+        else:
+            train_bar = tqdm(data_loader)
+            for pos_1, pos_2, target in train_bar:
+                this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon)
+
+                total_num += this_batch_size
+                total_loss += this_loss
+                train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
+
+        train_loss =  total_loss / total_num
+
+        results['train_loss'].append(train_loss)
+        test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, epoch, epochs)
+        results['test_acc@1'].append(test_acc_1)
+        results['test_acc@5'].append(test_acc_5)
+        if train_loss < best_train_loss:
+            best_train_loss_acc = test_acc_1
+            best_train_loss = train_loss
+            if not args.no_save:
+                torch.save(net.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
+        if test_acc_1 > best_test_acc:
+            best_test_acc = test_acc_1
+            best_test_acc_loss = train_loss
+            if not args.no_save:
+                torch.save(net.state_dict(), 'results/{}_best_test_acc_model.pth'.format(save_name_pre))
+
+        results['best_test_acc'].append(best_test_acc)
+        results['best_test_acc_loss'].append(best_test_acc_loss)
+        results['best_train_loss'].append(best_train_loss)
+        results['best_train_loss_acc'].append(best_train_loss_acc)
+
+        if not args.no_save:
+            # save statistics
+            data_frame = pd.DataFrame(data=results, index=range(1, args.piermaro_restart_epoch + epoch + 1))
+            data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
+
+    if not args.no_save:
+        torch.save(net.state_dict(), 'results/{}_piermaro_model.pth'.format(save_name_pre))
+        for key in results.keys():
+            length = len(results[key])
+            results[key] = results[key][length-10:length]
+        data_frame = pd.DataFrame(data=results, index=range(args.piermaro_restart_epoch + epochs - 9, args.piermaro_restart_epoch + epochs + 1))
+        data_frame.to_csv('results/{}_statistics_final_10_line.csv'.format(save_name_pre), index_label='epoch')
+        utils.plot_loss('results/{}_statistics'.format(save_name_pre))
+
+def train_inst_suppress(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model):
+
+    if args.load_model and args.piermaro_whole_epoch != '':
+        results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
+        for key in results.keys():
+            load_list = []
+            for i in range(len(results[key])):
+                load_list.append(results[key][i+1])
+            results[key] = load_list
+    else:
+        results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': []}
+    if not os.path.exists('results'):
+        os.mkdir('results')
+    best_test_acc = 0.0
+    best_test_acc_loss = 10
+    best_train_loss = 10
+    best_train_loss_acc = 0.0
+    if args.piermaro_whole_epoch != '':
+        whole_epoch = int(args.piermaro_whole_epoch)
+    else:
+        whole_epoch = epochs
+    all_in_flag = False
+    hard_curriculum_id_list = None
+
+    total_batch_num = get_total_batch_num(data_loader.data_source.data.shape[0], batch_size=args.batch_size, drop_last=args.train_data_drop_last)
+
+    for epoch in range(1, epochs + 1):
+
+        if hard_curriculum_id_list == None or (args.piermaro_restart_epoch+epoch) % args.inst_suppress_sheduler_gap == 0:
+            not_shuffle_batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=False, drop_last=False)
+            hard_curriculum_batch_num = (args.piermaro_restart_epoch+epoch) // args.inst_suppress_sheduler_gap + int(args.start_batch_num_ratio * total_batch_num)
+            hard_curriculum_batch_num = min(hard_curriculum_batch_num, total_batch_num)
+            hard_curriculum_sample_num = hard_curriculum_batch_num * args.batch_size
+            if args.pretrain_model_path != '':
+                decrease_inst_sigma_id = get_decrease_inst_sigma_id(pretrain_model, not_shuffle_batch_idx_list, data_loader, args.reorder_reverse, use_out=args.use_out_reorder)
+            else:
+                decrease_inst_sigma_id = get_decrease_inst_sigma_id(net, not_shuffle_batch_idx_list, data_loader, args.reorder_reverse, use_out=args.use_out_reorder)
+
+        batch_sub_list = get_batch_idx_group(hard_curriculum_sample_num, batch_size=args.batch_size, shuffle=flag_shuffle_train_data, drop_last=args.train_data_drop_last)
+
+        inst_suppress_batch_idx = []
+        for batch_sub in batch_sub_list:
+            inst_suppress_batch_idx.append(decrease_inst_sigma_id[batch_sub])
+
+        net.train()
+        total_loss, total_num, train_bar = 0.0, 0, tqdm(inst_suppress_batch_idx)
+        for batch_idx in train_bar:
+            pos_1, target = data_loader.get_batch(batch_idx)
+            this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon)
+
+            total_num += this_batch_size
+            total_loss += this_loss
+            train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
+
+        train_loss =  total_loss / total_num
+
+        results['train_loss'].append(train_loss)
+        test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, epoch, epochs)
+        results['test_acc@1'].append(test_acc_1)
+        results['test_acc@5'].append(test_acc_5)
+        if train_loss < best_train_loss:
+            best_train_loss_acc = test_acc_1
+            best_train_loss = train_loss
+            if not args.no_save:
+                torch.save(net.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
+        if test_acc_1 > best_test_acc:
+            best_test_acc = test_acc_1
+            best_test_acc_loss = train_loss
+            if not args.no_save:
+                torch.save(net.state_dict(), 'results/{}_best_test_acc_model.pth'.format(save_name_pre))
+
+        results['best_test_acc'].append(best_test_acc)
+        results['best_test_acc_loss'].append(best_test_acc_loss)
+        results['best_train_loss'].append(best_train_loss)
+        results['best_train_loss_acc'].append(best_train_loss_acc)
+
+        if not args.no_save:
+            # save statistics
+            data_frame = pd.DataFrame(data=results, index=range(1, args.piermaro_restart_epoch + epoch + 1))
+            data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
+
+    if not args.no_save:
+        torch.save(net.state_dict(), 'results/{}_piermaro_model.pth'.format(save_name_pre))
+        for key in results.keys():
+            length = len(results[key])
+            results[key] = results[key][length-10:length]
+        data_frame = pd.DataFrame(data=results, index=range(args.piermaro_restart_epoch + epochs - 9, args.piermaro_restart_epoch + epochs + 1))
+        data_frame.to_csv('results/{}_statistics_final_10_line.csv'.format(save_name_pre), index_label='epoch')
+        utils.plot_loss('results/{}_statistics'.format(save_name_pre))
+
+def curriculum(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model):
+
+    if args.load_model and args.piermaro_whole_epoch != '':
+        results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
+        for key in results.keys():
+            load_list = []
+            for i in range(len(results[key])):
+                load_list.append(results[key][i+1])
+            results[key] = load_list
+    else:
+        results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': []}
+    if not os.path.exists('results'):
+        os.mkdir('results')
+    best_test_acc = 0.0
+    best_test_acc_loss = 10
+    best_train_loss = 10
+    best_train_loss_acc = 0.0
+    if args.piermaro_whole_epoch != '':
+        whole_epoch = int(args.piermaro_whole_epoch)
+    else:
+        whole_epoch = epochs
+    all_in_flag = False
+    new_batch_idx_list = None
+    for epoch in range(1, epochs + 1):
+
+        batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=flag_shuffle_train_data, drop_last=args.train_data_drop_last)
+
+        if new_batch_idx_list == None or epoch % args.change_batch_step == 0:
+        
+            scheduler_length = get_scheduler_length(len(batch_idx_list), args.piermaro_restart_epoch+epoch, whole_epoch, args.start_batch_num_ratio, args.curriculum_scheduler)
+            scheduler_length = min(scheduler_length, len(batch_idx_list) - args.drop_last_new_batch)
+            # print(get_scheduler_length(len(batch_idx_list), args.piermaro_restart_epoch+1375, whole_epoch, args.start_batch_num_ratio, args.curriculum_scheduler))
+            if args.curriculum != 'no':
+                if args.pretrain_model_path == '':
+                    if args.mass_candidate in ["mass_candidate", "mass_candidate_replacement"]:
+                        new_batch_idx_list = sample_from_mass(net, data_loader, epoch, args.batch_size, scheduler_length, args.candidate_pool_size, args.use_out_reorder, args.reorder_reverse, args.curriculum, args.mass_candidate, all_in_flag, args.random_last_3batch)
+                    else:
+                        new_batch_idx_list = reorder_DBindex(net, batch_idx_list, data_loader, epoch, args.use_out_reorder, args.reorder_reverse, args.half_batch, args.curriculum)
+                else:
+                    if args.mass_candidate in ["mass_candidate", "mass_candidate_replacement"]:
+                        new_batch_idx_list = sample_from_mass(pretrain_model, data_loader, epoch, args.batch_size, scheduler_length, args.candidate_pool_size, args.use_out_reorder, args.reorder_reverse, args.curriculum, args.mass_candidate, all_in_flag, args.random_last_3batch)
+                    else:
+                        new_batch_idx_list = reorder_DBindex(pretrain_model, batch_idx_list, data_loader, epoch, args.use_out_reorder, args.reorder_reverse, args.half_batch, args.curriculum)
+            else:
+                new_batch_idx_list = batch_idx_list
+        
+        if args.debug:
+            print(new_batch_idx_list)
+            input()
+
+        net.train()
+        schedule_batch_idx_list = get_scheduler(new_batch_idx_list, args.piermaro_restart_epoch+epoch, whole_epoch, len(batch_idx_list), args.start_batch_num_ratio, args.curriculum_scheduler, args.shuffle_new_batch_list)
+        if len(batch_idx_list) == scheduler_length and args.all_in_flag:
+            all_in_flag = True
+        total_loss, total_num, train_bar = 0.0, 0, tqdm(schedule_batch_idx_list)
+        for batch_idx in train_bar:
+            pos_1, target = data_loader.get_batch(batch_idx)
+            this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon)
+
+            total_num += this_batch_size
+            total_loss += this_loss
+            train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
+
+        train_loss =  total_loss / total_num
+
+        results['train_loss'].append(train_loss)
+        test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, epoch, epochs)
+        results['test_acc@1'].append(test_acc_1)
+        results['test_acc@5'].append(test_acc_5)
+        if train_loss < best_train_loss:
+            best_train_loss_acc = test_acc_1
+            best_train_loss = train_loss
+            if not args.no_save:
+                torch.save(net.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
+        if test_acc_1 > best_test_acc:
+            best_test_acc = test_acc_1
+            best_test_acc_loss = train_loss
+            if not args.no_save:
+                torch.save(net.state_dict(), 'results/{}_best_test_acc_model.pth'.format(save_name_pre))
+
+        results['best_test_acc'].append(best_test_acc)
+        results['best_test_acc_loss'].append(best_test_acc_loss)
+        results['best_train_loss'].append(best_train_loss)
+        results['best_train_loss_acc'].append(best_train_loss_acc)
+
+        if not args.no_save:
+            # save statistics
+            data_frame = pd.DataFrame(data=results, index=range(1, args.piermaro_restart_epoch + epoch + 1))
+            data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
+
+    if not args.no_save:
+        torch.save(net.state_dict(), 'results/{}_piermaro_model.pth'.format(save_name_pre))
+        for key in results.keys():
+            length = len(results[key])
+            results[key] = results[key][length-10:length]
+        data_frame = pd.DataFrame(data=results, index=range(args.piermaro_restart_epoch + epochs - 9, args.piermaro_restart_epoch + epochs + 1))
+        data_frame.to_csv('results/{}_statistics_final_10_line.csv'.format(save_name_pre), index_label='epoch')
+        utils.plot_loss('results/{}_statistics'.format(save_name_pre))
+
+def adversarial_training(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model):
+
+    attack = PGD(model=net, epsilon=attack_epsilon, alpha=attack_alpha, min_val=0, max_val=1, max_iters=args.attack_steps, augmentation_prob=args.augmentation_prob, loss_type=args.curriculum, _type=args.attack_type,)
+    # def __init__(self, model, epsilon, alpha, min_val, max_val, max_iters, _type='linf'):
+
+    if args.load_model and args.piermaro_whole_epoch != '':
+        results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
+        for key in results.keys():
+            load_list = []
+            for i in range(len(results[key])):
+                load_list.append(results[key][i+1])
+            results[key] = load_list
+    else:
+        results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': []}
+    if not os.path.exists('results'):
+        os.mkdir('results')
+    best_test_acc = 0.0
+    best_test_acc_loss = 10
+    best_train_loss = 10
+    best_train_loss_acc = 0.0
+    if args.piermaro_whole_epoch != '':
+        whole_epoch = int(args.piermaro_whole_epoch)
+    else:
+        whole_epoch = epochs
+    all_in_flag = False
+    new_batch_idx_list = None
+    for epoch in range(1, epochs + 1):
+
+        batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=flag_shuffle_train_data, drop_last=args.train_data_drop_last)
+
+        total_loss, total_num, train_bar = 0.0, 0, tqdm(batch_idx_list)
+        for batch_idx in train_bar:
+            pos_1, target = data_loader.get_batch(batch_idx)
+            pos_1, target = pos_1.cuda(), target.cuda()
+            pos_1 = attack.perturb(pos_1, target, temperature, args.reorder_reverse)
+            # pos_1.requires_grad = False
+            pos_1.detach_()
+            net.train()
+            this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon)
+
+            total_num += this_batch_size
+            total_loss += this_loss
+            train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
+
+        train_loss =  total_loss / total_num
+
+        results['train_loss'].append(train_loss)
+        test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, epoch, epochs)
+        results['test_acc@1'].append(test_acc_1)
+        results['test_acc@5'].append(test_acc_5)
+        if train_loss < best_train_loss:
+            best_train_loss_acc = test_acc_1
+            best_train_loss = train_loss
+            if not args.no_save:
+                torch.save(net.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
+        if test_acc_1 > best_test_acc:
+            best_test_acc = test_acc_1
+            best_test_acc_loss = train_loss
+            if not args.no_save:
+                torch.save(net.state_dict(), 'results/{}_best_test_acc_model.pth'.format(save_name_pre))
+
+        results['best_test_acc'].append(best_test_acc)
+        results['best_test_acc_loss'].append(best_test_acc_loss)
+        results['best_train_loss'].append(best_train_loss)
+        results['best_train_loss_acc'].append(best_train_loss_acc)
+
+        if not args.no_save:
+            # save statistics
+            data_frame = pd.DataFrame(data=results, index=range(1, args.piermaro_restart_epoch + epoch + 1))
+            data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
+
+    if not args.no_save:
+        torch.save(net.state_dict(), 'results/{}_piermaro_model.pth'.format(save_name_pre))
+        for key in results.keys():
+            length = len(results[key])
+            results[key] = results[key][length-10:length]
+        data_frame = pd.DataFrame(data=results, index=range(args.piermaro_restart_epoch + epochs - 9, args.piermaro_restart_epoch + epochs + 1))
+        data_frame.to_csv('results/{}_statistics_final_10_line.csv'.format(save_name_pre), index_label='epoch')
+        utils.plot_loss('results/{}_statistics'.format(save_name_pre))
+
+def auto_aug(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model):
+
+    if args.load_model and args.piermaro_whole_epoch != '':
+        results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
+        for key in results.keys():
+            load_list = []
+            for i in range(len(results[key])):
+                load_list.append(results[key][i+1])
+            results[key] = load_list
+    else:
+        results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': []}
+    if not os.path.exists('results'):
+        os.mkdir('results')
+    best_test_acc = 0.0
+    best_test_acc_loss = 10
+    best_train_loss = 10
+    best_train_loss_acc = 0.0
+    if args.piermaro_whole_epoch != '':
+        whole_epoch = int(args.piermaro_whole_epoch)
+    else:
+        whole_epoch = epochs
+
+    if pretrain_model == None:
+        get_aug(net, data_loader, args.batch_size, args.use_out_reorder, args.augmentation_prob, args.color_jitter_strength, args.save_aug_file_name)
+    else:
+        get_aug(pretrain_model, data_loader, args.batch_size, args.use_out_reorder, args.augmentation_prob, args.color_jitter_strength, args.save_aug_file_name)
+
+
+def just_plot(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre):
+    # utils.plot_loss('results/{}_statistics'.format(args.load_model_path.replace("_model", "")))
+    # def test_instance_sim(net, memory_data_loader, test_data_loader, k, temperature, epochs, augmentation, augmentation_prob):
+    # new_batch_idx_list = sample_from_mass(net, data_loader, 0, args.batch_size, 8, args.candidate_pool_size, args.use_out_reorder, args.reorder_reverse, args.curriculum, args.mass_candidate, False, args.random_last_3batch)
+    # utils.plot_mass_candidate(net, new_batch_idx_list, data_loader, args.load_model_path, args.batch_size)
+    acc1, acc5 = test_instance_sim(net, memory_loader, test_loader, args.augmentation_prob, args.color_jitter_strength)
+
+    f = open("./{}".format("temp.txt"), "a")
+    f.write("{}\t{}\n".format(acc1, acc5))
+    f.close()
+        
 
 if __name__ == '__main__':
     feature_dim, temperature, k = args.feature_dim, args.temperature, args.k
     batch_size, epochs = args.batch_size, args.epochs
 
     # data prepare
-    train_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.ToTensor_transform, download=True)
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=16, pin_memory=True,
-                              drop_last=True)
-    memory_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.ToTensor_transform, download=True)
-    memory_loader = DataLoader(memory_data, batch_size=batch_size, shuffle=False, num_workers=16, pin_memory=True)
-    test_data = utils.CIFAR10Pair(root='data', train=False, transform=utils.ToTensor_transform, download=True)
-    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=16, pin_memory=True)
+    train_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
+    if args.train_mode == "normal":
+        if not args.my_train_loader:
+            train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=flag_shuffle_train_data, num_workers=2, pin_memory=True, drop_last=args.train_data_drop_last)
+        else:
+            train_loader = ByIndexDataLoader(train_data)
+    else:
+        train_loader = ByIndexDataLoader(train_data)
+    memory_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
+    test_data = utils.CIFAR10Pair(root='data', train=False, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
+    if not args.my_test_loader:
+        memory_loader = DataLoader(memory_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True)
+        test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True)
+    else:
+        memory_loader = ByIndexDataLoader(memory_data)
+        test_loader = ByIndexDataLoader(test_data)
 
     # model setup and optimizer config
     model = Model(feature_dim, arch=args.arch).cuda()
     flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32).cuda(),))
     flops, params = clever_format([flops, params])
     print('# Model Params: {} FLOPs: {}'.format(params, flops))
+
+    if args.load_model:
+        load_model_path = './results/{}.pth'.format(args.load_model_path)
+        checkpoints = torch.load(load_model_path, map_location=device)
+        model.load_state_dict(checkpoints)
+        # logger.info("File %s loaded!" % (load_model_path))
+
+    if args.pretrain_model_path != '':
+        pretrain_model = Model(feature_dim, arch=args.arch).cuda()
+        flops, params = profile(pretrain_model, inputs=(torch.randn(1, 3, 32, 32).cuda(),))
+        flops, params = clever_format([flops, params])
+        print('# Pretrain-Model Params: {} FLOPs: {}'.format(params, flops))
+        pretrain_model_path = './results/{}.pth'.format(args.pretrain_model_path)
+        checkpoints = torch.load(pretrain_model_path, map_location=device)
+        pretrain_model.load_state_dict(checkpoints)
+    else:
+        pretrain_model = None
+
+    if args.piermaro_whole_epoch == '':
+        save_name_pre = '{}_{}_{}_{}_{}_{}'.format(args.train_mode, args.job_id, datetime.datetime.now().strftime("%Y%m%d%H%M%S"), temperature, k, batch_size, epochs)
+    else:
+        if args.load_model:
+            save_name_pre = args.load_model_path
+            save_name_pre = save_name_pre.replace("_piermaro_model", "").replace("_model", "")
+        else:
+            save_name_pre = '{}_{}_{}_{}_{}_{}'.format(args.train_mode, args.job_id, datetime.datetime.now().strftime("%Y%m%d%H%M%S"), temperature, k, batch_size, args.piermaro_whole_epoch)
+
     optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-6)
-    c = len(memory_data.classes)
+    c = np.max(train_data.targets) + 1
 
-    # training loop
-    results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_acc': [], 'best_acc_loss': []}
-    save_name_pre = 'differentiable_{}_{}_{}_{}'.format(datetime.datetime.now().strftime("%Y%m%d%H%M%S"), temperature, k, batch_size, epochs)
-    if not os.path.exists('results'):
-        os.mkdir('results')
-    best_acc = 0.0
-    best_acc_loss = 7.1
-    for epoch in range(1, epochs + 1):
-        train_loss = train(model, train_loader, optimizer)
-        results['train_loss'].append(train_loss)
-        test_acc_1, test_acc_5 = test(model, memory_loader, test_loader)
-        results['test_acc@1'].append(test_acc_1)
-        results['test_acc@5'].append(test_acc_5)
-        if test_acc_1 > best_acc:
-            best_acc = test_acc_1
-            best_acc_loss = train_loss
-            torch.save(model.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
-        results['best_acc'].append(best_acc)
-        results['best_acc_loss'].append(best_acc_loss)
+    if args.train_mode == "normal":
+        train(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre)
 
-        # save statistics
-        data_frame = pd.DataFrame(data=results, index=range(1, epoch + 1))
-        data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
+    elif args.train_mode == "inst_suppress":
+        train_inst_suppress(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model)
+
+    elif args.train_mode == "curriculum":
+        curriculum(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model)
+
+    elif args.train_mode == "just_plot":
+        just_plot(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre)
+
+    elif args.train_mode == "auto_aug":
+        auto_aug(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model)
+
+    elif args.train_mode == "adversarial_training":
+        adversarial_training(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model)

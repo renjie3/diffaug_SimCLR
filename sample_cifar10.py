@@ -42,8 +42,8 @@ sampled_target = []
 classes_count = [0 for _ in range(10)]
 
 # print(sampled_target.shape)
-for i in range(0,50000, 3):
-    if classes_count[targets[i]] < 1024 and targets[i] in sampled_class:
+for i in range(40000,50000, 3):
+    if classes_count[targets[i]] < 256 and targets[i] in sampled_class:
         classes_count[targets[i]] += 1
         sampled_target.append(sampled_class[targets[i]])
         sampled_data.append(data[i])
@@ -90,6 +90,6 @@ sampled["train_targets"] = sampled_target
 sampled["test_data"] = sampled_data_test
 sampled["test_targets"] = sampled_target_test
 
-file_path = './data/sampled_cifar10/cifar10_4096_4class.pkl'
+file_path = './data/sampled_cifar10/cifar10_1024_4class16.pkl'
 with open(file_path, "wb") as f:
     entry = pickle.dump(sampled, f)

@@ -21,15 +21,26 @@
 # $MY_CMD
 # done
 
-MY_CMD="python main.py --batch_size 128 --epochs 2000 --arch resnet18 --data_name cifar10_1024_4class --train_mode curriculum --curriculum DBindex_high2low --mass_candidate mass_candidate --train_data_drop_last --load_model --load_model_path random_initial_model1 --start_batch_num_ratio 0.5 --curriculum_scheduler 0_1_1 --my_data_loader --local 2 --no_save"
+# para=(0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0)
+# para2=(0.0 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0)
 
-# MY_CMD="python main.py --batch_size 512 --epochs 600 --arch resnet18 --data_name cifar10_20000_4class --train_mode inst_suppress --train_data_drop_last --half_batch --local 1 --no_save" 
+# for((i=0;i<11;i++));
+# do
+# curriculum_45893765_1_20220219111714_0.5_200_128_model DBindex_high2low
+# curriculum_45893779_1_20220219111714_0.5_200_128_model DBindex_cluster_GT
+# curriculum_45870333_1_20220218202830_0.5_200_128_model DBindex_ratio_inst_cluster_GT
+
+
+MY_CMD="python main2.py --batch_size 128 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_kmeans --perturb_batchsize 0 --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_alpha 2 --attack_steps 4 --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --num_clusters 4 5 7 10 15 20 --repeat_num 5 --local 2 --no_save"
+
+# MY_CMD="python check_dbindex.py --data_name cifar10_20000_4class --load_model differentiable_45160867_1_20220205220613_0.5_200_512_model" 
 
 # random_initial_model1
 
 echo $MY_CMD
 echo ${MY_CMD}>>local_history.log
 $MY_CMD
+# done
 
 # [1.49317038 1.46205029 1.44700492 1.44585339 1.43239688 1.42751081 1.38831038 1.38641607]
 # [1.544758001290737, 1.5256435889739641, 1.4890058229628536, 1.4689529423617615, 1.4505241649116285, 1.4442768025963217, 1.413575579095807, 1.2936461359176392]

@@ -1,0 +1,186 @@
+Wed Feb 23 16:10:46 EST 2022
+46103217
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --job_id 46103217_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --job_id 46103217_2
+---------------------------------------------------------------
+Wed Feb 23 16:14:48 EST 2022
+46103415
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path --piermaro_restart_epoch 50 --job_id 46103415_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path --piermaro_restart_epoch 50 --job_id 46103415_2
+---------------------------------------------------------------
+Wed Feb 23 16:18:27 EST 2022
+46103478
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path --piermaro_restart_epoch 100 --job_id 46103478_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path --piermaro_restart_epoch 100 --job_id 46103478_2
+---------------------------------------------------------------
+Wed Feb 23 16:44:34 EST 2022
+46103542
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --job_id 46103542_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --job_id 46103542_2
+---------------------------------------------------------------
+Wed Feb 23 17:01:38 EST 2022
+46105486
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 50 --job_id 46105486_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 50 --job_id 46105486_2
+---------------------------------------------------------------
+Wed Feb 23 17:06:53 EST 2022
+46106452
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 100 --job_id 46106452_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 100 --job_id 46106452_2
+---------------------------------------------------------------
+Wed Feb 23 17:14:53 EST 2022
+46106692
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 150 --job_id 46106692_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 150 --job_id 46106692_2
+---------------------------------------------------------------
+Wed Feb 23 17:21:20 EST 2022
+46106813
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 200 --job_id 46106813_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 200 --job_id 46106813_2
+---------------------------------------------------------------
+Wed Feb 23 17:31:10 EST 2022
+46106853
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 250 --job_id 46106853_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 250 --job_id 46106853_2
+---------------------------------------------------------------
+Wed Feb 23 17:44:42 EST 2022
+46108102
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 300 --job_id 46108102_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 300 --job_id 46108102_2
+---------------------------------------------------------------
+Wed Feb 23 17:55:12 EST 2022
+46108378
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 350 --job_id 46108378_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 350 --job_id 46108378_2
+---------------------------------------------------------------
+Wed Feb 23 18:05:22 EST 2022
+46109051
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 400 --job_id 46109051_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 400 --job_id 46109051_2
+---------------------------------------------------------------
+Wed Feb 23 18:16:24 EST 2022
+46109305
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 450 --job_id 46109305_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 450 --job_id 46109305_2
+---------------------------------------------------------------
+Wed Feb 23 18:22:17 EST 2022
+46110546
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 500 --job_id 46110546_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 500 --job_id 46110546_2
+---------------------------------------------------------------
+Wed Feb 23 18:31:45 EST 2022
+46110693
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 550 --job_id 46110693_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 550 --job_id 46110693_2
+---------------------------------------------------------------
+Wed Feb 23 18:38:53 EST 2022
+46110860
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 600 --job_id 46110860_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 600 --job_id 46110860_2
+---------------------------------------------------------------
+Wed Feb 23 18:48:47 EST 2022
+46110988
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 650 --job_id 46110988_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 650 --job_id 46110988_2
+---------------------------------------------------------------
+Wed Feb 23 18:56:07 EST 2022
+46111188
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 700 --job_id 46111188_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 700 --job_id 46111188_2
+---------------------------------------------------------------
+Wed Feb 23 19:09:00 EST 2022
+46111382
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 750 --job_id 46111382_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 750 --job_id 46111382_2
+---------------------------------------------------------------
+Wed Feb 23 19:22:27 EST 2022
+46111819
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 800 --job_id 46111819_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 800 --job_id 46111819_2
+---------------------------------------------------------------
+Wed Feb 23 19:33:22 EST 2022
+46112350
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 850 --job_id 46112350_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 850 --job_id 46112350_2
+---------------------------------------------------------------
+Wed Feb 23 19:46:53 EST 2022
+46112871
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 900 --job_id 46112871_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 900 --job_id 46112871_2
+---------------------------------------------------------------
+Wed Feb 23 19:52:28 EST 2022
+46113591
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 950 --job_id 46113591_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 950 --job_id 46113591_2
+---------------------------------------------------------------
+Wed Feb 23 20:01:57 EST 2022
+46113897
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1000 --job_id 46113897_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1000 --job_id 46113897_2
+---------------------------------------------------------------
+Wed Feb 23 20:07:41 EST 2022
+46114032
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1050 --job_id 46114032_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1050 --job_id 46114032_2
+---------------------------------------------------------------
+Wed Feb 23 20:18:55 EST 2022
+46114134
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1100 --job_id 46114134_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1100 --job_id 46114134_2
+---------------------------------------------------------------
+Wed Feb 23 20:24:24 EST 2022
+46114360
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1150 --job_id 46114360_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1150 --job_id 46114360_2
+---------------------------------------------------------------
+Wed Feb 23 20:29:20 EST 2022
+46114484
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1200 --job_id 46114484_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1200 --job_id 46114484_2
+---------------------------------------------------------------
+Wed Feb 23 20:33:30 EST 2022
+46114537
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1250 --job_id 46114537_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1250 --job_id 46114537_2
+---------------------------------------------------------------
+Wed Feb 23 20:38:34 EST 2022
+46114609
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1300 --job_id 46114609_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1300 --job_id 46114609_2
+---------------------------------------------------------------
+Wed Feb 23 20:49:37 EST 2022
+46114725
+cifar10 baseline
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_1_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1350 --job_id 46114725_1
+python main.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 1400 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --my_train_loader --train_data_drop_last --attack_epsilon 8 --attack_alpha 2 --attack_steps 4 --load_model --load_model_path adversarial_training_46103542_2_20220223162608_0.5_200_512_piermaro_model --piermaro_restart_epoch 1350 --job_id 46114725_2
+---------------------------------------------------------------
