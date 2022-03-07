@@ -21,10 +21,11 @@ JOB_INFO="cifar10 baseline"
 # whole_cifar10 
 # --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
 # normal_45921554_1_20220219224232_0.5_200_128_model
+# normal_45934552_2_20220220113003_0.5_200_128_best_test_acc_model
 
-MYCOMMEND="python main.py --batch_size 128 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_kmeans --perturb_batchsize 0 --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_alpha 2 --attack_steps 4 --weight_dbindex_loss 0.01 --start_dbindex_loss_epoch 800 --num_clusters 4 5 7 10 15 20 --repeat_num 5"
+MYCOMMEND="python main.py --batch_size 128 --epochs 1000 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_kmeans --perturb_batchsize 0 --load_model --load_model_path normal_45934552_2_20220220113003_0.5_200_128_best_test_acc_model --my_train_loader --train_data_drop_last --attack_alpha 2 --attack_steps 4 --weight_dbindex_loss 0.01 --start_dbindex_loss_epoch -1 --num_clusters 4 5 7 10 15 20 --repeat_num 1"
 
-MYCOMMEND2="python main2.py --batch_size 128 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_kmeans --perturb_batchsize 0 --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_alpha 2 --attack_steps 4 --weight_dbindex_loss 0.5 --start_dbindex_loss_epoch -1 --num_clusters 4 5 7 10 15 20 --repeat_num 5"
+MYCOMMEND2="python main.py --batch_size 512 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode normal --curriculum DBindex_cluster_kmeans --perturb_batchsize 0 --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_alpha 2 --attack_steps 4 --weight_dbindex_loss 0.05 --start_dbindex_loss_epoch 1000 --num_clusters 4 5 7 10 15 20 --repeat_num 1"
 
 MYCOMMEND3="python main.py --batch_size 128 --epochs 1000 --arch resnet18 --data_name cifar10_1024_4class --train_mode normal --train_data_drop_last"
 
@@ -35,7 +36,7 @@ MYCOMMEND3="python main.py --batch_size 128 --epochs 1000 --arch resnet18 --data
 # normal_45623148_1_20220214092107_0.5_200_128_model normal_45623149_1_20220214092107_0.5_200_128_model normal_45623150_1_20220214092108_0.5_200_128_model normal_45623151_1_20220214092109_0.5_200_128_model normal_45623152_1_20220214092110_0.5_200_128_model normal_45623153_1_20220214092111_0.5_200_128_model normal_45623154_1_20220214092111_0.5_200_128_model normal_45623155_1_20220214092112_0.5_200_128_model
 # normal_45623148_2_20220214092107_0.5_200_128_model normal_45623149_2_20220214092107_0.5_200_128_model normal_45623150_2_20220214092108_0.5_200_128_model normal_45623151_2_20220214092109_0.5_200_128_model normal_45623152_2_20220214092109_0.5_200_128_model normal_45623153_2_20220214092111_0.5_200_128_model normal_45623154_2_20220214092111_0.5_200_128_model normal_45623155_2_20220214092112_0.5_200_128_model
 
-# MYCOMMEND2="No_commend2"
+MYCOMMEND2="No_commend2"
 MYCOMMEND3="No_commend3"
 
 cat ./slurm_files/sconfigs1_cmse.sb > submit.sb

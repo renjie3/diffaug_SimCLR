@@ -613,4 +613,4 @@ python main.py --batch_size 128 --epochs 1200 --arch resnet18 --data_name cifar1
 python main.py --batch_size 128 --epochs 1200 --arch resnet18 --data_name cifar10_1024_4class --train_mode adversarial_training --curriculum DBindex_high2low --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_alpha 0.8 --attack_steps 10
 
 
-46309737
+46309737 46305120 46312332

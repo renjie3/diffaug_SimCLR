@@ -26,8 +26,8 @@ MY_ROOT_PATH="/mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/
 
 cd ${MY_ROOT_PATH}
 JOB_INFO="cifar10 baseline"
-MYCOMMEND="python main2.py --batch_size 128 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_kmeans --perturb_batchsize 0 --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_alpha 2 --attack_steps 4 --weight_dbindex_loss 0.5 --start_dbindex_loss_epoch 800 --num_clusters 4 5 7 10 15 20 --repeat_num 5 --job_id ${SLURM_JOB_ID}_1"
-MYCOMMEND2="python main2.py --batch_size 128 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_kmeans --perturb_batchsize 0 --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_alpha 2 --attack_steps 4 --weight_dbindex_loss 0.5 --start_dbindex_loss_epoch -1 --num_clusters 4 5 7 10 15 20 --repeat_num 5 --job_id ${SLURM_JOB_ID}_2"
+MYCOMMEND="python main.py --batch_size 128 --epochs 1000 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_kmeans --perturb_batchsize 0 --load_model --load_model_path normal_45934552_2_20220220113003_0.5_200_128_best_test_acc_model --my_train_loader --train_data_drop_last --attack_alpha 2 --attack_steps 4 --weight_dbindex_loss 0.01 --start_dbindex_loss_epoch -1 --num_clusters 4 5 7 10 15 20 --repeat_num 1 --job_id ${SLURM_JOB_ID}_1"
+MYCOMMEND2="No_commend2 --job_id ${SLURM_JOB_ID}_2"
 MYCOMMEND3="No_commend3 --job_id ${SLURM_JOB_ID}_3"
 
 #print the information of a job into one file
