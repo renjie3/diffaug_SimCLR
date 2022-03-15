@@ -320,7 +320,7 @@ class PGD():
         print(metrics.davies_bouldin_score(sample, new_label))
 
 
-def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clusters, repeat_num, kmeans_labels_list, batch_idx):
+def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clusters, repeat_num):
 
     # repeat_num = 5
     if loss_type in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset']:
@@ -680,14 +680,8 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
             num_clusters = [4, 5, 7, 10, 15, 20]
         loss = 0
         for num_cluster_idx in range(len(num_clusters)):
-            # kmeans_labels, cluster_centers = kmeans(
-            #     X=momentum_encoder_sample, num_clusters=num_clusters[num_cluster_idx], distance='euclidean', device=sample.device, tqdm_flag=False
-            # )
-            # kmeans_labels_list, batch_idx
-            kmeans_labels = kmeans_labels_list[num_cluster_idx][batch_idx]
-            # print(kmeans_labels)
-            # print(type(kmeans_labels))
-            # input('check input')
+            # kmeans_labels = kmeans_labels_list[num_cluster_idx][batch_idx]
+            kmeans_labels = labels[:, num_cluster_idx]
             cluster_label = kmeans_labels.repeat((repeat_num, ))
             class_center = []
             sort_class = []
@@ -710,12 +704,6 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
             
             class_dis = torch.cdist(class_center, class_center, p=2)
 
-            # class_dis = torch.zeros(class_center.shape)
-
-            # for i in range(class_center.shape[0]):
-            #     for j in range(class_center.shape[0]):
-            #         dis = torch.sqrt(torch.sum((class_center[i] - class_center[j]) ** 2))
-            #         class_dis[i,j] = dis
 
             mask = (torch.ones_like(class_dis) - torch.eye(class_dis.shape[0], device=class_dis.device)).bool()
             class_dis = class_dis.masked_select(mask).view(class_dis.shape[0], -1)
@@ -724,13 +712,6 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
             trans_intra_class_dis = torch.transpose(intra_class_dis, 0, 1)
             intra_class_dis_pair_sum = intra_class_dis + trans_intra_class_dis
             intra_class_dis_pair_sum = intra_class_dis_pair_sum.masked_select(mask).view(intra_class_dis_pair_sum.shape[0], -1)
-
-            # print(intra_class_dis_pair_sum.shape)
-            # print(intra_class_dis.shape)
-            # print(mask.shape)
-            # print(class_dis.shape)
-            # print(class_center.shape)
-            # input()
 
             cluster_DB_loss = torch.max(intra_class_dis_pair_sum / class_dis, dim=1)[0].mean()
             loss -= cluster_DB_loss

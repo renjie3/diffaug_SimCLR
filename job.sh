@@ -4,7 +4,7 @@ MY_JOB_ROOT_PATH=`pwd`
 # echo $MY_JOB_ROOT_PATH
 cd $MY_JOB_ROOT_PATH
 
-MYTIME="3:50:00"
+MYTIME="23:50:00"
 MYCPU="5"
 MYGPUTYPE="v100s"
 
@@ -24,19 +24,19 @@ JOB_INFO="cifar10 baseline"
 # normal_45934552_2_20220220113003_0.5_200_128_best_test_acc_model
 # 4 5 7 10 15 20
 
-MYCOMMEND="python main.py --batch_size 128 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2_weighted_cluster --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1000 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1"
+MYCOMMEND="python main.py --batch_size 512 --epochs 1500 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1000 --restore_k_when_start --num_clusters 10 15 20 40 --repeat_num 1"
 
-MYCOMMEND2="python main.py --batch_size 128 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1000 --restore_k_when_start --num_clusters 20 30 50 --repeat_num 5"
+MYCOMMEND2="python main.py --batch_size 512 --epochs 1500 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1000 --restore_k_when_start --num_clusters 10 15 20 40 --repeat_num 1"
 
 MYCOMMEND3="python main.py --batch_size 128 --epochs 1000 --arch resnet18 --data_name cifar10_1024_4class --train_mode normal --train_data_drop_last"
 
 # normal_46334423_2_20220301154842_0.5_200_512_best_test_acc_model normal_46334424_2_20220301154842_0.5_200_512_model normal_46334425_2_20220301154959_0.5_200_512_model normal_46334426_2_20220301155011_0.5_200_512_model normal_46334427_2_20220301155120_0.5_200_512_model normal_46334428_2_20220301155152_0.5_200_512_model normal_46334429_2_20220301155216_0.5_200_512_model normal_46334430_2_20220301155216_0.5_200_512_model
 
-MYCOMMEND2="No_commend2"
+# MYCOMMEND2="No_commend2"
 MYCOMMEND3="No_commend3"
 
-cat ./slurm_files/sconfigs1_cmse.sb > submit.sb
-# cat ./slurm_files/sconfigs1.sb > submit.sb
+# cat ./slurm_files/sconfigs1_cmse.sb > submit.sb
+cat ./slurm_files/sconfigs1.sb > submit.sb
 echo "#SBATCH --gres=gpu:${MYGPUTYPE}:1"  >> submit.sb
 echo "#SBATCH --time=${MYTIME}             # limit of wall clock time - how long the job will run (same as -t)" >> submit.sb
 echo "#SBATCH --cpus-per-task=${MYCPU}           # number of CPUs (or cores) per task (same as -c)" >> submit.sb

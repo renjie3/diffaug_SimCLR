@@ -151,7 +151,7 @@ def train_batch(net, pos_1, pos_2, target, train_optimizer, ifm_epsilon, weight_
 
     return loss.item() * this_batch_size, this_batch_size
 
-def train_batch_kmeans(net, pos_1, pos_2, target, train_optimizer, ifm_epsilon, weight_dbindex_loss, kmeans_labels_list, batch_idx):
+def train_batch_kmeans(net, pos_1, pos_2, target, train_optimizer, ifm_epsilon, weight_dbindex_loss):
 
     if np.sum(args.augmentation_prob) != 0:
         my_transform = train_diff_transform_prob(*args.augmentation_prob)
@@ -163,7 +163,7 @@ def train_batch_kmeans(net, pos_1, pos_2, target, train_optimizer, ifm_epsilon, 
 
     if weight_dbindex_loss != 0:
         # get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform)
-        dbindex_loss = get_dbindex_loss(net, pos_1.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, kmeans_labels_list, batch_idx)
+        dbindex_loss = get_dbindex_loss(net, pos_1.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num)
         # dbindex_loss = 0
     else:
         dbindex_loss = 0
@@ -741,7 +741,7 @@ def train_dbindex_loss(net, data_loader, train_optimizer, memory_loader, test_lo
                 kmeans_labels_list = []
                 cluster_centers_list = []
                 kmeans_feature = []
-                GT_label = []
+                GT_label = [] #  important: GT_label is not used for the second epoch or later. So when changing the targets of dataset in epoch 1, it will not influence GT_label.
                 net.eval()
                 for kmeans_batch_idx in kmeans_batch_idx_list:
                     pos_1, target = data_loader.get_batch(kmeans_batch_idx)
@@ -772,6 +772,8 @@ def train_dbindex_loss(net, data_loader, train_optimizer, memory_loader, test_lo
                     else:
                         utils.plot_kmeans(kmeans_feature, GT_label, save_name_pre, kmeans_labels_list)
                     break
+                kmeans_targets = torch.stack(kmeans_labels_list, dim=1)
+                data_loader.data_source.targets = kmeans_targets
             else:
                 kmeans_labels_list = None
             if flag_kmeans_plot:
@@ -794,16 +796,16 @@ def train_dbindex_loss(net, data_loader, train_optimizer, memory_loader, test_lo
                     kmeans_labels, cluster_centers = kmeans(X=kmeans_feature, num_clusters=args.plot_n_cluster[num_cluster_idx], distance='euclidean', device=pos_1.device, tqdm_flag=False)
                     plot_kmeans_labels_list.append(kmeans_labels)
                     cluster_centers_list.append(cluster_centers)
+                    
                 if args.kmeans_plot:
                     utils.plot_kmeans_epoch(kmeans_feature, GT_label, args.load_model_path, plot_kmeans_labels_list, epoch)
-                    
             
             net.train()
             train_bar = tqdm(batch_idx_list)
             for batch_idx in train_bar:
                 pos_1, target = data_loader.get_batch(batch_idx)
                 if epoch > args.start_dbindex_loss_epoch:
-                    this_loss, this_batch_size = train_batch_kmeans(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss, kmeans_labels_list, batch_idx)
+                    this_loss, this_batch_size = train_batch_kmeans(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss)
                 else:
                     this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, 0)
                 if args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
@@ -812,15 +814,99 @@ def train_dbindex_loss(net, data_loader, train_optimizer, memory_loader, test_lo
                 total_loss += this_loss
                 train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
         else:
-            if args.curriculum == 'DBindex_cluster_momentum_kmeans_wholeset':
-                raise("pytorch loader in DBindex_cluster_momentum_kmeans_wholeset is still under developing")
+            raise('Please use train_dbindex_loss_pytorch_loader().')
+
+        train_loss =  total_loss / total_num
+
+        results['train_loss'].append(train_loss)
+        test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, epoch, epochs)
+        results['test_acc@1'].append(test_acc_1)
+        results['test_acc@5'].append(test_acc_5)
+        if train_loss < best_train_loss:
+            best_train_loss_acc = test_acc_1
+            best_train_loss = train_loss
+            if not args.no_save:
+                torch.save(net.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
+        if test_acc_1 > best_test_acc:
+            best_test_acc = test_acc_1
+            best_test_acc_loss = train_loss
+            if not args.no_save:
+                torch.save(net.state_dict(), 'results/{}_best_test_acc_model.pth'.format(save_name_pre))
+
+        results['best_test_acc'].append(best_test_acc)
+        results['best_test_acc_loss'].append(best_test_acc_loss)
+        results['best_train_loss'].append(best_train_loss)
+        results['best_train_loss_acc'].append(best_train_loss_acc)
+
+        if not args.no_save:
+            # save statistics
+            data_frame = pd.DataFrame(data=results, index=range(1, args.piermaro_restart_epoch + epoch + 1))
+            data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
+
+    if not args.no_save:
+        torch.save(net.state_dict(), 'results/{}_piermaro_model.pth'.format(save_name_pre))
+        for key in results.keys():
+            length = len(results[key])
+            results[key] = results[key][length-10:length]
+        data_frame = pd.DataFrame(data=results, index=range(args.piermaro_restart_epoch + epochs - 9, args.piermaro_restart_epoch + epochs + 1))
+        data_frame.to_csv('results/{}_statistics_final_10_line.csv'.format(save_name_pre), index_label='epoch')
+        utils.plot_loss('results/{}_statistics'.format(save_name_pre))
+
+def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, train_data):
+
+    if args.load_model and args.piermaro_whole_epoch != '':
+        results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
+        for key in results.keys():
+            load_list = []
+            for i in range(len(results[key])):
+                load_list.append(results[key][i+1])
+            results[key] = load_list
+    else:
+        results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': []}
+    if not os.path.exists('results'):
+        os.mkdir('results')
+    best_test_acc = 0.0
+    best_test_acc_loss = 7.1
+    best_train_loss = 10
+    best_train_loss_acc = 0.0
+    for epoch in range(1, epochs + 1):
+        net.train()
+        total_loss, total_num = 0.0, 0
+        if args.restore_k_when_start and epoch == args.start_dbindex_loss_epoch and args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
+            net.restore_k_with_q()
+        if args.my_train_loader:
+            raise("Please use train_dbindex_loss().")
+        else:
+            if (args.curriculum == 'DBindex_cluster_momentum_kmeans_wholeset' and epoch > args.start_dbindex_loss_epoch):
+                kmeans_loader = DataLoader(train_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True, drop_last=False)
+                kmeans_labels_list = []
+                cluster_centers_list = []
+                kmeans_feature = []
+                GT_label = []
+                net.eval()
+                for pos_1, pos_2, target in kmeans_loader:
+                    pos_1, target = pos_1.cuda(), target.cuda()
+                    feature, out = net.momentum_encoder(pos_1)
+                    kmeans_feature.append(feature)
+                    GT_label.append(target.detach().cpu().numpy())
+                
+                kmeans_feature = torch.cat(kmeans_feature, dim=0)
+                GT_label = np.concatenate(GT_label, axis=0)
+                for num_cluster_idx in range(len(args.num_clusters)):
+                    kmeans_labels, cluster_centers = kmeans(X=kmeans_feature, num_clusters=args.num_clusters[num_cluster_idx], distance='euclidean', device=pos_1.device, tqdm_flag=False)
+                    kmeans_labels_list.append(kmeans_labels)
+                    cluster_centers_list.append(cluster_centers)
+
+                kmeans_targets = torch.stack(kmeans_labels_list, dim=1)
+                train_data.targets = kmeans_targets
+                    
             train_bar = tqdm(data_loader)
             for pos_1, pos_2, target in train_bar:
                 if epoch > args.start_dbindex_loss_epoch:
-                    this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss)
+                    this_loss, this_batch_size = train_batch_kmeans(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss)
                 else:
                     this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, 0)
-                if args.curriculum == 'DBindex_cluster_momentum_kmeans':
+                if args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
                     net._momentum_update_key_encoder()
 
                 total_num += this_batch_size
@@ -870,7 +956,7 @@ if __name__ == '__main__':
 
     # data prepare
     train_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
-    if args.train_mode == "normal":
+    if args.train_mode in ["normal", "train_dbindex_loss"]:
         if not args.my_train_loader:
             train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=flag_shuffle_train_data, num_workers=2, pin_memory=True, drop_last=args.train_data_drop_last)
         else:
@@ -953,4 +1039,7 @@ if __name__ == '__main__':
         adversarial_training(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model)
 
     elif args.train_mode == "train_dbindex_loss":
-        train_dbindex_loss(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre)
+        if args.my_train_loader:
+            train_dbindex_loss(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre)
+        else:
+            train_dbindex_loss_pytorch_loader(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, train_data)

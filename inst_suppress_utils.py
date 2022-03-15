@@ -414,7 +414,8 @@ class ByIndexDataLoader():
             batch_data = torch.tensor(batch_data).permute((0, 3, 1, 2)) / 255.0
 
             batch_targets = self.data_source.targets[indices]
-            batch_targets = torch.tensor(batch_targets)
+            if not torch.is_tensor(batch_targets):
+                batch_targets = torch.tensor(batch_targets)
 
             return batch_data.float(), batch_targets
 

@@ -1,13 +1,12 @@
 #!/bin/bash --login
 ########## SBATCH Lines for Resource Request ##########
 
-#SBATCH --account=cmse
 #SBATCH --nodes=1                 # number of different nodes - could be an exact number or a range of nodes (same as -N)
 #SBATCH --ntasks=1                  # number of tasks - how many tasks (nodes) that you require (same as -n)
 #SBATCH --mem-per-cpu=8G            # memory required per allocated CPU (or core) - amount of memory (in bytes)
 #SBATCH --job-name SimCLR      # you can give your job a name for easier identification (same as -J)
 #SBATCH --gres=gpu:v100s:1
-#SBATCH --time=3:50:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --time=23:50:00             # limit of wall clock time - how long the job will run (same as -t)
 #SBATCH --cpus-per-task=5           # number of CPUs (or cores) per task (same as -c)
 #SBATCH -o /mnt/ufs18/home-145/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/logfile/%j.log
 #SBATCH -e /mnt/ufs18/home-145/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/logfile/%j.err
@@ -26,8 +25,8 @@ MY_ROOT_PATH="/mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/
 
 cd ${MY_ROOT_PATH}
 JOB_INFO="cifar10 baseline"
-MYCOMMEND="python main.py --batch_size 128 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path normal_46284823_1_20220228105753_0.5_200_128_best_test_acc_model --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1 --job_id ${SLURM_JOB_ID}_1"
-MYCOMMEND2="No_commend2 --job_id ${SLURM_JOB_ID}_2"
+MYCOMMEND="python main.py --batch_size 512 --epochs 1500 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1000 --restore_k_when_start --num_clusters 10 15 20 40 --repeat_num 1 --job_id ${SLURM_JOB_ID}_1"
+MYCOMMEND2="python main.py --batch_size 512 --epochs 1500 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1000 --restore_k_when_start --num_clusters 10 15 20 40 --repeat_num 1 --job_id ${SLURM_JOB_ID}_2"
 MYCOMMEND3="No_commend3 --job_id ${SLURM_JOB_ID}_3"
 
 #print the information of a job into one file
