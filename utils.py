@@ -20,9 +20,26 @@ from matplotlib.colors import ListedColormap
 
 from tqdm import tqdm
 
+# from inst_suppress_utils import get_batch_idx_group
+from kmeans_pytorch import kmeans
+
 ToTensor_transform = transforms.Compose([
     transforms.ToTensor(),
 ])
+
+def get_batch_idx_group(total_num, batch_size=512, shuffle=False, drop_last=False):
+    if shuffle:
+        perm_id = np.random.permutation(total_num)
+    else:
+        perm_id = np.arange(total_num)
+    if drop_last:
+        batch_num = total_num // batch_size
+    else:
+        batch_num = (total_num - 1) // batch_size + 1
+    batch_idx_list = []
+    for i in range(batch_num):
+        batch_idx_list.append(perm_id[i*batch_size:min(total_num, (i+1)*batch_size)])
+    return batch_idx_list
 
 
 class CIFAR10Pair(CIFAR10):
@@ -217,6 +234,223 @@ def plot_mass_candidate(net, new_batch_idx_list, data_loader, save_name_pre, bat
         if not os.path.exists('./plot_mass_candidate/{}'.format(save_name_pre)):
             os.mkdir('./plot_mass_candidate/{}'.format(save_name_pre))
         plt.savefig('./plot_mass_candidate/{}/{}.png'.format(save_name_pre, i))
+        plt.close()
+
+def plot_kmeans(feature_bank, GT_label, save_name_pre, kmeans_labels_list):
+
+    tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
+
+    # # feature_bank = np.concatenate(feature_bank, axis=0) get_batch_idx_group
+    # batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=128, shuffle=False, drop_last=False)
+    # batch_feature_bank = []
+    # batch_plot_labels = []
+    
+    # for batch_idx in batch_idx_list:
+    #     pos_1, targets = data_loader.get_batch(batch_idx)
+    #     pos_1, targets = pos_1.cuda(), targets.cuda()
+    #     feature, out = net(pos_1)
+    #     batch_feature_bank.append(feature)
+    #     # batch_feature_bank.append(feature.detach().cpu().numpy())
+    #     batch_plot_labels.append(targets.detach().cpu().numpy())
+    # feature_bank = torch.cat(batch_feature_bank, dim=0)
+    # plot_labels = np.concatenate(batch_plot_labels, axis=0)
+
+    labels_list = [GT_label] + kmeans_labels_list
+
+    # for i, n_cluster in enumerate(num_clusters):
+    #     kmeans_labels, cluster_centers = kmeans(X=feature_bank, num_clusters=n_cluster, distance='euclidean', device=feature_bank.device, tqdm_flag=False)
+    #     kmeans_labels_list.append(kmeans_labels.detach().cpu().numpy())
+
+    for i, labels in enumerate(labels_list):
+        
+        feature_tsne_input = feature_bank.detach().cpu().numpy()
+        if i == 0:
+            plot_labels_colar = labels
+        else:
+            plot_labels_colar = labels.detach().cpu().numpy()
+        feature_tsne_output = tsne.fit_transform(feature_tsne_input)
+        c = np.max(plot_labels_colar) + 1
+        
+        coord_min = math.floor(np.min(feature_tsne_output) / 1) * 1
+        coord_max = math.ceil(np.max(feature_tsne_output) / 1) * 1
+
+        cm = plt.cm.get_cmap('gist_rainbow')
+        z = np.arange(c)
+        my_cmap = cm(z)
+        my_cmap = ListedColormap(my_cmap)
+
+        marker = ['o', 'x', 'v', 'd']
+        color_map = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w', 'chartreuse', 'cyan', 'sage', 'coral', 'gold', 'plum', 'sienna', 'teal']
+
+        fig = plt.figure(figsize=(8, 8))
+        ax = fig.add_subplot(1, 1, 1)
+        plt.title("\n max:{} min:{}".format(coord_max, coord_min))
+
+        x_pos_1 = feature_tsne_output[:, 0]
+        y_pos_1 = feature_tsne_output[:, 1]
+        # plot_labels_colar = labels.detach().cpu().numpy()
+
+        # linewidths
+
+        aug1 = plt.scatter(x_pos_1, y_pos_1, s=15, marker='o', c=plot_labels_colar, cmap=cm)
+
+        plt.xlim((coord_min, coord_max))
+        plt.ylim((coord_min, coord_max))
+        if not os.path.exists('./plot_kmeans/{}'.format(save_name_pre)):
+            os.mkdir('./plot_kmeans/{}'.format(save_name_pre))
+        if i == 0:
+            plt.savefig('./plot_kmeans/{}/{}_{}.png'.format(save_name_pre, 'GT', save_name_pre))
+        else:
+            plt.savefig('./plot_kmeans/{}/{}_{}.png'.format(save_name_pre, c, save_name_pre))
+        plt.close()
+
+def plot_kmeans_train_test(feature_bank, GT_label, save_name_pre, kmeans_labels_list, n_train):
+
+    tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
+
+    # # feature_bank = np.concatenate(feature_bank, axis=0) get_batch_idx_group
+    # batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=128, shuffle=False, drop_last=False)
+    # batch_feature_bank = []
+    # batch_plot_labels = []
+    
+    # for batch_idx in batch_idx_list:
+    #     pos_1, targets = data_loader.get_batch(batch_idx)
+    #     pos_1, targets = pos_1.cuda(), targets.cuda()
+    #     feature, out = net(pos_1)
+    #     batch_feature_bank.append(feature)
+    #     # batch_feature_bank.append(feature.detach().cpu().numpy())
+    #     batch_plot_labels.append(targets.detach().cpu().numpy())
+    # feature_bank = torch.cat(batch_feature_bank, dim=0)
+    # plot_labels = np.concatenate(batch_plot_labels, axis=0)
+
+    labels_list = [GT_label] + kmeans_labels_list
+
+    # for i, n_cluster in enumerate(num_clusters):
+    #     kmeans_labels, cluster_centers = kmeans(X=feature_bank, num_clusters=n_cluster, distance='euclidean', device=feature_bank.device, tqdm_flag=False)
+    #     kmeans_labels_list.append(kmeans_labels.detach().cpu().numpy())
+
+    for i, labels in enumerate(labels_list):
+        
+        feature_tsne_input = feature_bank.detach().cpu().numpy()
+        if i == 0:
+            plot_labels_colar = labels
+        else:
+            plot_labels_colar = labels.detach().cpu().numpy()
+        feature_tsne_output = tsne.fit_transform(feature_tsne_input)
+        c = np.max(plot_labels_colar) + 1
+        
+        coord_min = math.floor(np.min(feature_tsne_output) / 1) * 1
+        coord_max = math.ceil(np.max(feature_tsne_output) / 1) * 1
+
+        cm = plt.cm.get_cmap('gist_rainbow')
+        z = np.arange(c)
+        my_cmap = cm(z)
+        my_cmap = ListedColormap(my_cmap)
+
+        marker = ['o', 'x', 'v', 'd']
+        color_map = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w', 'chartreuse', 'cyan', 'sage', 'coral', 'gold', 'plum', 'sienna', 'teal']
+
+        fig = plt.figure(figsize=(16, 8))
+        # ax = fig.add_subplot(1, 2, 1)
+        plt.subplot(1, 2, 1)
+        plt.title("\n max:{} min:{}".format(coord_max, coord_min))
+
+        x_pos_1 = feature_tsne_output[:n_train, 0]
+        y_pos_1 = feature_tsne_output[:n_train, 1]
+
+        aug1 = plt.scatter(x_pos_1, y_pos_1, s=15, marker='o', c=plot_labels_colar[:n_train], cmap=cm)
+
+        plt.xlim((coord_min, coord_max))
+        plt.ylim((coord_min, coord_max))
+
+        # ax = fig.add_subplot(1, 2, 2)
+        plt.subplot(1, 2, 2)
+        plt.title("\n max:{} min:{}".format(coord_max, coord_min))
+
+        x_pos_1 = feature_tsne_output[n_train:, 0]
+        y_pos_1 = feature_tsne_output[n_train:, 1]
+
+        aug1 = plt.scatter(x_pos_1, y_pos_1, s=15, marker='o', c=plot_labels_colar[n_train:], cmap=cm)
+
+        plt.xlim((coord_min, coord_max))
+        plt.ylim((coord_min, coord_max))
+
+        if not os.path.exists('./plot_kmeans/{}'.format(save_name_pre)):
+            os.mkdir('./plot_kmeans/{}'.format(save_name_pre))
+        if i == 0:
+            plt.savefig('./plot_kmeans/{}/{}_{}.png'.format(save_name_pre, 'GT', save_name_pre))
+        else:
+            plt.savefig('./plot_kmeans/{}/{}_{}.png'.format(save_name_pre, c, save_name_pre))
+        plt.close()
+
+def plot_kmeans_epoch(feature_bank, GT_label, save_name_pre, kmeans_labels_list, epoch):
+
+    tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
+
+    # # feature_bank = np.concatenate(feature_bank, axis=0) get_batch_idx_group
+    # batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=128, shuffle=False, drop_last=False)
+    # batch_feature_bank = []
+    # batch_plot_labels = []
+    
+    # for batch_idx in batch_idx_list:
+    #     pos_1, targets = data_loader.get_batch(batch_idx)
+    #     pos_1, targets = pos_1.cuda(), targets.cuda()
+    #     feature, out = net(pos_1)
+    #     batch_feature_bank.append(feature)
+    #     # batch_feature_bank.append(feature.detach().cpu().numpy())
+    #     batch_plot_labels.append(targets.detach().cpu().numpy())
+    # feature_bank = torch.cat(batch_feature_bank, dim=0)
+    # plot_labels = np.concatenate(batch_plot_labels, axis=0)
+
+    labels_list = [GT_label] + kmeans_labels_list
+
+    # for i, n_cluster in enumerate(num_clusters):
+    #     kmeans_labels, cluster_centers = kmeans(X=feature_bank, num_clusters=n_cluster, distance='euclidean', device=feature_bank.device, tqdm_flag=False)
+    #     kmeans_labels_list.append(kmeans_labels.detach().cpu().numpy())
+
+    for i, labels in enumerate(labels_list):
+        
+        feature_tsne_input = feature_bank.detach().cpu().numpy()
+        if i == 0:
+            plot_labels_colar = labels
+        else:
+            plot_labels_colar = labels.detach().cpu().numpy()
+        feature_tsne_output = tsne.fit_transform(feature_tsne_input)
+        c = np.max(plot_labels_colar) + 1
+        
+        coord_min = math.floor(np.min(feature_tsne_output) / 1) * 1
+        coord_max = math.ceil(np.max(feature_tsne_output) / 1) * 1
+
+        cm = plt.cm.get_cmap('gist_rainbow')
+        z = np.arange(c)
+        my_cmap = cm(z)
+        my_cmap = ListedColormap(my_cmap)
+
+        marker = ['o', 'x', 'v', 'd']
+        color_map = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w', 'chartreuse', 'cyan', 'sage', 'coral', 'gold', 'plum', 'sienna', 'teal']
+
+        fig = plt.figure(figsize=(8, 8))
+        ax = fig.add_subplot(1, 1, 1)
+        plt.title("\n max:{} min:{}".format(coord_max, coord_min))
+
+        x_pos_1 = feature_tsne_output[:, 0]
+        y_pos_1 = feature_tsne_output[:, 1]
+        # plot_labels_colar = labels.detach().cpu().numpy()
+
+        # linewidths
+
+        aug1 = plt.scatter(x_pos_1, y_pos_1, s=15, marker='o', c=plot_labels_colar, cmap=cm)
+
+        plt.xlim((coord_min, coord_max))
+        plt.ylim((coord_min, coord_max))
+        if not os.path.exists('./plot_kmeans/{}'.format(save_name_pre)):
+            os.mkdir('./plot_kmeans/{}'.format(save_name_pre))
+        if not os.path.exists('./plot_kmeans/{}/{}'.format(save_name_pre, epoch)):
+            os.mkdir('./plot_kmeans/{}/{}'.format(save_name_pre, epoch))
+        if i == 0:
+            plt.savefig('./plot_kmeans/{}/{}/{}_{}.png'.format(save_name_pre, epoch, 'GT', save_name_pre))
+        else:
+            plt.savefig('./plot_kmeans/{}/{}/{}_{}.png'.format(save_name_pre, epoch, c, save_name_pre))
         plt.close()
 
 def test_instance_sim(net, memory_data_loader, test_data_loader, augmentation_prob, cj_strength):

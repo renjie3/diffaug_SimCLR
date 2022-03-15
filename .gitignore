@@ -16,3 +16,4 @@ my_experiments/
 logfile/
 FLAG_ROOM/
 data/sampled_cifar10/
+plot_kmeans/

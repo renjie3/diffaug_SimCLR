@@ -17,7 +17,7 @@ parser.add_argument('--use_out_reorder', action='store_true', default=False)
 parser.add_argument('--reorder_reverse', action='store_true', default=False)
 parser.add_argument('--half_batch', action='store_true', default=False)
 parser.add_argument('--train_mode', default='normal', type=str, choices=['normal', 'inst_suppress', 'curriculum', 'just_plot', 'auto_aug', 'adversarial_training', 'train_dbindex_loss'], help='What samples to plot')
-parser.add_argument('--curriculum', default='', type=str, choices=['', 'no', 'DBindex_high2low', 'DBindex_cluster_GT', 'DBindex_cluster_kmeans', 'DBindex_ratio_inst_cluster_GT', 'DBindex_product_inst_cluster_GT', 'DBindex_cluster_GT_org_sample_only', 'mass_candidate', 'mass_candidate_replacement'], help='How to reorder curriculum learning.')
+parser.add_argument('--curriculum', default='', type=str, choices=['', 'no', 'DBindex_high2low', 'DBindex_cluster_GT', 'DBindex_cluster_kmeans', 'DBindex_cluster_momentum_kmeans', 'DBindex_ratio_inst_cluster_GT', 'DBindex_product_inst_cluster_GT', 'DBindex_cluster_GT_org_sample_only', 'mass_candidate', 'mass_candidate_replacement', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2', 'DBindex_cluster_momentum_kmeans_repeat_v2_weighted_cluster', 'DBindex_cluster_momentum_kmeans_repeat_v2_mean_dbindex'], help='How to reorder curriculum learning.')
 parser.add_argument('--mass_candidate', default='', type=str, choices=['', 'mass_candidate', 'mass_candidate_replacement'], help='How to')
 parser.add_argument('--curriculum_scheduler', default='0_0.5_1', type=str, choices=['', '0_0.5_1', '0_1_1'], help='curriculum_scheduler')
 parser.add_argument('--load_model', action='store_true', default=False)
@@ -49,6 +49,13 @@ parser.add_argument('--perturb_batchsize', default=0, type=int, help='perturb_ba
 parser.add_argument('--repeat_num', default=5, type=int, help='perturb_batchsize')
 parser.add_argument('--start_dbindex_loss_epoch', default=0, type=int, help='perturb_batchsize')
 parser.add_argument('--num_clusters', default=[0], nargs='+', type=int, help='get augmentation by probility')
+parser.add_argument('--plot_n_cluster', default=[0], nargs='+', type=int, help='get augmentation by probility')
+parser.add_argument('--m', default=0.999, type=float, help='momentum of momentum_encoder')
+parser.add_argument('--restore_k_when_start', action='store_true', default=False)
+parser.add_argument('--kmeans_just_plot', action='store_true', default=False)
+parser.add_argument('--kmeans_plot', action='store_true', default=False)
+parser.add_argument('--load_momentum_model', action='store_true', default=False)
+parser.add_argument('--kmeans_just_plot_test', action='store_true', default=False)
 
 parser.add_argument('--attack_steps', default=10, type=int, help='perturb number of steps')
 
@@ -76,13 +83,14 @@ import numpy as np
 from sklearn import metrics
 
 import utils
-from model import Model
+from model import Model, momentum_Model
 from utils import train_diff_transform, train_diff_transform_prob
 
 from inst_suppress_utils import *
 from auto_aug_utils import *
 
 from attack import PGD, get_dbindex_loss
+from kmeans_pytorch import kmeans
 
 import datetime
 
@@ -122,6 +130,58 @@ def train_batch(net, pos_1, pos_2, target, train_optimizer, ifm_epsilon, weight_
     pos_den_mask2 = torch.cat([torch.eye(pos_1.shape[0], device=pos_1.device), torch.zeros((pos_1.shape[0], pos_1.shape[0]), device=pos_1.device)], dim=0)
     pos_den_mask = torch.cat([pos_den_mask1, pos_den_mask2], dim=1) * 2 * ifm_epsilon
     sim_matrix_before_exp -= pos_den_mask
+
+    sim_matrix = torch.exp(sim_matrix_before_exp / temperature)
+    this_batch_size = pos_1.shape[0]
+    mask = (torch.ones_like(sim_matrix) - torch.eye(2 * this_batch_size, device=sim_matrix.device)).bool()
+    # [2*B, 2*B-1]
+    sim_matrix = sim_matrix.masked_select(mask).view(2 * this_batch_size, -1)
+
+    # compute loss
+    pos_sim = torch.exp((torch.sum(out_1 * out_2, dim=-1) - ifm_epsilon) / temperature)
+    # [2*B]
+    pos_sim = torch.cat([pos_sim, pos_sim], dim=0)
+    simclr_loss = (- torch.log(pos_sim / sim_matrix.sum(dim=-1))).mean()
+
+    loss = -weight_dbindex_loss * dbindex_loss + simclr_loss
+
+    train_optimizer.zero_grad()
+    loss.backward()
+    train_optimizer.step()
+
+    return loss.item() * this_batch_size, this_batch_size
+
+def train_batch_kmeans(net, pos_1, pos_2, target, train_optimizer, ifm_epsilon, weight_dbindex_loss, kmeans_labels_list, batch_idx):
+
+    if np.sum(args.augmentation_prob) != 0:
+        my_transform = train_diff_transform_prob(*args.augmentation_prob)
+    else:
+        my_transform = train_diff_transform
+    
+    net.train()
+    pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
+
+    if weight_dbindex_loss != 0:
+        # get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform)
+        dbindex_loss = get_dbindex_loss(net, pos_1.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, kmeans_labels_list, batch_idx)
+        # dbindex_loss = 0
+    else:
+        dbindex_loss = 0
+
+    pos_1, pos_2 = my_transform(pos_1), my_transform(pos_2)
+
+    feature_1, out_1 = net(pos_1)
+    feature_2, out_2 = net(pos_2)
+    # print(out_1.shape)
+    # input()
+    # [2*B, D]
+    out = torch.cat([out_1, out_2], dim=0)
+    # [2*B, 2*B]
+    sim_matrix_before_exp = torch.mm(out, out.t().contiguous()) # + ifm_epsilon
+    # pos_den_mask1 = torch.cat([torch.zeros((pos_1.shape[0], pos_1.shape[0]), device=pos_1.device), torch.eye(pos_1.shape[0], device=pos_1.device)], dim=0)
+    # pos_den_mask2 = torch.cat([torch.eye(pos_1.shape[0], device=pos_1.device), torch.zeros((pos_1.shape[0], pos_1.shape[0]), device=pos_1.device)], dim=0)
+    # pos_den_mask = torch.cat([pos_den_mask1, pos_den_mask2], dim=1) * 2 * ifm_epsilon
+    # sim_matrix_before_exp -= pos_den_mask
 
     sim_matrix = torch.exp(sim_matrix_before_exp / temperature)
     this_batch_size = pos_1.shape[0]
@@ -667,25 +727,101 @@ def train_dbindex_loss(net, data_loader, train_optimizer, memory_loader, test_lo
             batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=flag_shuffle_train_data, drop_last=args.train_data_drop_last)
         net.train()
         total_loss, total_num = 0.0, 0
+        # print(args.restore_k_when_start, epoch, args.start_dbindex_loss_epoch, args.curriculum)
+        # input()
+        if args.restore_k_when_start and epoch == args.start_dbindex_loss_epoch and args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
+            net.restore_k_with_q()
         if args.my_train_loader:
+            if args.kmeans_plot and epoch % 2 == 1:
+                flag_kmeans_plot = True
+            else:
+                flag_kmeans_plot = False
+            if (args.curriculum == 'DBindex_cluster_momentum_kmeans_wholeset' and epoch > args.start_dbindex_loss_epoch):
+                kmeans_batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=False, drop_last=False)
+                kmeans_labels_list = []
+                cluster_centers_list = []
+                kmeans_feature = []
+                GT_label = []
+                net.eval()
+                for kmeans_batch_idx in kmeans_batch_idx_list:
+                    pos_1, target = data_loader.get_batch(kmeans_batch_idx)
+                    pos_1, target = pos_1.cuda(), target.cuda()
+                    feature, out = net.momentum_encoder(pos_1)
+                    kmeans_feature.append(feature)
+                    GT_label.append(target.detach().cpu().numpy())
+                
+                if args.kmeans_just_plot_test:
+                    kmeans_batch_idx_list = get_batch_idx_group(test_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=False, drop_last=False)
+                    net.eval()
+                    for kmeans_batch_idx in kmeans_batch_idx_list:
+                        pos_1, target = test_loader.get_batch(kmeans_batch_idx)
+                        pos_1, target = pos_1.cuda(), target.cuda()
+                        feature, out = net.momentum_encoder(pos_1)
+                        kmeans_feature.append(feature)
+                        GT_label.append(target.detach().cpu().numpy())
+                
+                kmeans_feature = torch.cat(kmeans_feature, dim=0)
+                GT_label = np.concatenate(GT_label, axis=0)
+                for num_cluster_idx in range(len(args.num_clusters)):
+                    kmeans_labels, cluster_centers = kmeans(X=kmeans_feature, num_clusters=args.num_clusters[num_cluster_idx], distance='euclidean', device=pos_1.device, tqdm_flag=False)
+                    kmeans_labels_list.append(kmeans_labels)
+                    cluster_centers_list.append(cluster_centers)
+                if args.kmeans_just_plot:
+                    if args.kmeans_just_plot_test:
+                        utils.plot_kmeans_train_test(kmeans_feature, GT_label, save_name_pre, kmeans_labels_list, data_loader.data_source.data.shape[0])
+                    else:
+                        utils.plot_kmeans(kmeans_feature, GT_label, save_name_pre, kmeans_labels_list)
+                    break
+            else:
+                kmeans_labels_list = None
+            if flag_kmeans_plot:
+                kmeans_batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=False, drop_last=False)
+                plot_kmeans_labels_list = []
+                cluster_centers_list = []
+                kmeans_feature = []
+                GT_label = []
+                net.eval()
+                for kmeans_batch_idx in kmeans_batch_idx_list:
+                    pos_1, target = data_loader.get_batch(kmeans_batch_idx)
+                    pos_1, target = pos_1.cuda(), target.cuda()
+                    feature, out = net.momentum_encoder(pos_1)
+                    kmeans_feature.append(feature)
+                    GT_label.append(target.detach().cpu().numpy())
+                kmeans_feature = torch.cat(kmeans_feature, dim=0)
+                # print(kmeans_feature.shape)
+                GT_label = np.concatenate(GT_label, axis=0)
+                for num_cluster_idx in range(len(args.plot_n_cluster)):
+                    kmeans_labels, cluster_centers = kmeans(X=kmeans_feature, num_clusters=args.plot_n_cluster[num_cluster_idx], distance='euclidean', device=pos_1.device, tqdm_flag=False)
+                    plot_kmeans_labels_list.append(kmeans_labels)
+                    cluster_centers_list.append(cluster_centers)
+                if args.kmeans_plot:
+                    utils.plot_kmeans_epoch(kmeans_feature, GT_label, args.load_model_path, plot_kmeans_labels_list, epoch)
+                    
+            
+            net.train()
             train_bar = tqdm(batch_idx_list)
             for batch_idx in train_bar:
                 pos_1, target = data_loader.get_batch(batch_idx)
                 if epoch > args.start_dbindex_loss_epoch:
-                    this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss)
+                    this_loss, this_batch_size = train_batch_kmeans(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss, kmeans_labels_list, batch_idx)
                 else:
                     this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, 0)
-
+                if args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
+                    net._momentum_update_key_encoder()
                 total_num += this_batch_size
                 total_loss += this_loss
                 train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
         else:
+            if args.curriculum == 'DBindex_cluster_momentum_kmeans_wholeset':
+                raise("pytorch loader in DBindex_cluster_momentum_kmeans_wholeset is still under developing")
             train_bar = tqdm(data_loader)
             for pos_1, pos_2, target in train_bar:
                 if epoch > args.start_dbindex_loss_epoch:
                     this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss)
                 else:
                     this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, 0)
+                if args.curriculum == 'DBindex_cluster_momentum_kmeans':
+                    net._momentum_update_key_encoder()
 
                 total_num += this_batch_size
                 total_loss += this_loss
@@ -751,16 +887,29 @@ if __name__ == '__main__':
         test_loader = ByIndexDataLoader(test_data)
 
     # model setup and optimizer config
-    model = Model(feature_dim, arch=args.arch).cuda()
-    flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32).cuda(),))
-    flops, params = clever_format([flops, params])
-    print('# Model Params: {} FLOPs: {}'.format(params, flops))
+    if args.curriculum not in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2', 'DBindex_cluster_momentum_kmeans_repeat_v2_mean_dbindex', 'DBindex_cluster_momentum_kmeans_repeat_v2_weighted_cluster']:
+        model = Model(feature_dim, arch=args.arch).cuda()
+        flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32).cuda(),))
+        flops, params = clever_format([flops, params])
+        print('# Model Params: {} FLOPs: {}'.format(params, flops))
+    else:
+        model = momentum_Model(feature_dim, arch=args.arch, m=args.m).cuda()
+        flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32).cuda(),))
+        flops, params = clever_format([flops, params])
+        print('# Model Params: {} FLOPs: {}'.format(params, flops))
 
     if args.load_model:
-        load_model_path = './results/{}.pth'.format(args.load_model_path)
-        checkpoints = torch.load(load_model_path, map_location=device)
-        model.load_state_dict(checkpoints)
-        # logger.info("File %s loaded!" % (load_model_path))
+        if args.curriculum not in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2', 'DBindex_cluster_momentum_kmeans_repeat_v2_mean_dbindex', 'DBindex_cluster_momentum_kmeans_repeat_v2_weighted_cluster'] or args.load_momentum_model:
+            load_model_path = './results/{}.pth'.format(args.load_model_path)
+            checkpoints = torch.load(load_model_path, map_location=device)
+            model.load_state_dict(checkpoints)
+            # logger.info("File %s loaded!" % (load_model_path))
+        else:
+            load_model_path = './results/{}.pth'.format(args.load_model_path)
+            checkpoints = torch.load(load_model_path, map_location=device)
+            model.model.load_state_dict(checkpoints)
+            model.key_model.load_state_dict(checkpoints)
+            # logger.info("File %s loaded!" % (load_model_path))
 
     if args.pretrain_model_path != '':
         pretrain_model = Model(feature_dim, arch=args.arch).cuda()

@@ -53,12 +53,12 @@ for job_id in job_ids:
             job2_train_loss_acc_results.append(results['best_train_loss_acc'][max_key])
 
 
-        if sub_job1 in name and "128_model" in name:
+        if sub_job1 in name and ("128_model" in name or "512_model" in name):
         # if sub_job1 in name and "_statistics.csv" in name:
             model1_list.append(name.replace(".pth", ""))
             
         
-        if sub_job2 in name and "128_model" in name:
+        if sub_job2 in name and ("128_model" in name or "512_model" in name):
             model2_list.append(name.replace(".pth", ""))
         
 

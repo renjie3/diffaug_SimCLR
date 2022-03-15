@@ -29,9 +29,15 @@
 # curriculum_45893765_1_20220219111714_0.5_200_128_model DBindex_high2low
 # curriculum_45893779_1_20220219111714_0.5_200_128_model DBindex_cluster_GT
 # curriculum_45870333_1_20220218202830_0.5_200_128_model DBindex_ratio_inst_cluster_GT
+# train_dbindex_loss_47850754_1_20220313165236_0
 
+# MY_CMD="python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path train_dbindex_loss_47850754_1_20220313165236_0.5_200_128_piermaro_model --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 15 --kmeans_just_plot --load_momentum_model --my_test_loader --repeat_num 1 --local 2 --no_save"
 
-MY_CMD="python main2.py --batch_size 128 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_kmeans --perturb_batchsize 0 --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --attack_alpha 2 --attack_steps 4 --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --num_clusters 4 5 7 10 15 20 --repeat_num 5 --local 2 --no_save"
+# MY_CMD="python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path train_dbindex_loss_46301913_1_20220228195148_0.5_200_128_best_test_acc_model --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 15 --kmeans_just_plot --kmeans_just_plot_test --my_test_loader --repeat_num 1 --local 2 --no_save"
+
+MY_CMD="python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_46994222_2_20220308095726_0.5_200_128_model --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1"
+
+# MY_CMD="python main.py --batch_size 512 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2_mean_dbindex --load_model --load_model_path random_initial_model1 --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1000 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1"
 
 # MY_CMD="python check_dbindex.py --data_name cifar10_20000_4class --load_model differentiable_45160867_1_20220205220613_0.5_200_512_model" 
 

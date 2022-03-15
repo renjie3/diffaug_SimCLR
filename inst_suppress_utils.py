@@ -420,3 +420,12 @@ class ByIndexDataLoader():
 
         else:
             raise("Need ordered indices")
+
+    def get_all_data(self):
+        all_data = self.data_source.data.astype(np.float)
+        all_data = torch.tensor(all_data).permute((0, 3, 1, 2)) / 255.0
+
+        all_targets = self.data_source.targets
+        all_targets = torch.tensor(all_targets)
+
+        return all_data.float(), all_targets

@@ -36,3 +36,39 @@ class Model(nn.Module):
         # print(F.normalize(feature, dim=-1))
         return F.normalize(feature, dim=-1), F.normalize(out, dim=-1)
         # return feature, F.normalize(out, dim=-1)
+
+class momentum_Model(nn.Module):
+    def __init__(self, feature_dim=128, cifar_head=True, arch='resnet18', m=0.999):
+        super(momentum_Model, self).__init__()
+        self.model = Model(feature_dim, cifar_head, arch)
+        self.key_model = Model(feature_dim, cifar_head, arch)
+        self.m = m
+
+        for param_q, param_k in zip(self.model.parameters(), self.key_model.parameters()):
+            param_k.data.copy_(param_q.data)  # initialize
+            param_k.requires_grad = False  # not update by gradient
+    
+    def forward(self, x):
+        return self.model(x)
+
+    def momentum_encoder(self, x):
+        # input("momentum_encoder")
+        return self.key_model(x)
+
+    @torch.no_grad()
+    def _momentum_update_key_encoder(self):
+        """
+        Momentum update of the key encoder
+        """
+        for param_q, param_k in zip(self.model.parameters(), self.key_model.parameters()):
+            param_k.data = param_k.data * self.m + param_q.data * (1. - self.m)
+        # input("_momentum_update_key_encoder")
+
+    @torch.no_grad()
+    def restore_k_with_q(self):
+        for param_q, param_k in zip(self.model.parameters(), self.key_model.parameters()):
+            param_k.data.copy_(param_q.data)  # initialize
+            param_k.requires_grad = False  # not update by gradient
+        
+        # input("restore_k_with_q")
+        
