@@ -4,7 +4,7 @@ PIERMARO_JOB_ROOT_PATH=`pwd`
 # echo $MY_JOB_ROOT_PATH
 cd $PIERMARO_JOB_ROOT_PATH
 DATE_NAME=${1}
-echo $$
+echo $$ >> piermaro_log/${DATE_NAME}.log
 
 WHOLE_EPOCH=1500
 SINGLE_EPOCH=100

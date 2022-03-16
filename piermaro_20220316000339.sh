@@ -4,10 +4,9 @@ PIERMARO_JOB_ROOT_PATH=`pwd`
 # echo $MY_JOB_ROOT_PATH
 cd $PIERMARO_JOB_ROOT_PATH
 DATE_NAME=${1}
-echo $$
 
-WHOLE_EPOCH=1500
-SINGLE_EPOCH=100
+WHOLE_EPOCH=50
+SINGLE_EPOCH=10
 REJOB_TIMES=`expr $WHOLE_EPOCH / $SINGLE_EPOCH`
 
 JOB_INFO="cifar10 baseline"
@@ -15,9 +14,9 @@ JOB_INFO="cifar10 baseline"
 
 # MYCOMMEND2="python main.py --batch_size 512 --epochs 300 --arch resnet18 --data_name cifar10_20000_4class --train_mode inst_suppress --not_shuffle_train_data"
 
-PIERMARO_MYCOMMEND="python main.py --batch_size 512 --epochs $SINGLE_EPOCH --piermaro_whole_epoch ${WHOLE_EPOCH} --arch resnet18 --data_name cifar10_1024_4class  --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1000 --restore_k_when_start --num_clusters 10 15 20 40"
+PIERMARO_MYCOMMEND="python main.py --batch_size 512 --epochs $SINGLE_EPOCH --piermaro_whole_epoch ${WHOLE_EPOCH} --arch resnet18 --data_name cifar10_1024_4class  --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 10 15 20 40"
 
-PIERMARO_MYCOMMEND2="python main.py --batch_size 512 --epochs $SINGLE_EPOCH --piermaro_whole_epoch ${WHOLE_EPOCH} --arch resnet18 --data_name cifar10_1024_4class  --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1000 --restore_k_when_start --num_clusters 10 15 20 40"
+PIERMARO_MYCOMMEND2="python main.py --batch_size 512 --epochs $SINGLE_EPOCH --piermaro_whole_epoch ${WHOLE_EPOCH} --arch resnet18 --data_name cifar10_1024_4class  --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 10 15 20 40"
 
 PIERMARO_MYCOMMEND3="python3 -u ssl_perturbation_save_model.py --config_path configs/cifar10 --exp_name path/to/your/experiment/folder --version resnet18 --train_data_type CIFAR10 --noise_shape 1024 3 32 32 --perturb_type theory_model --epochs 1000 --min_min_attack_fn non_eot --strong_aug --class_4 --gray_train no --gray_test no --theory_train_data hierarchical32_16_period_dim30_shuffle_diffmean_knn32 --theory_test_data hierarchical32_16_period_dim30_shuffle_diffmean_test1_knn32 --random_drop_feature_num 0 1 1 --gaussian_aug_std 7 --theory_normalize --thoery_schedule_dim 30"
 

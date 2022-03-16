@@ -17,3 +17,6 @@ logfile/
 FLAG_ROOM/
 data/sampled_cifar10/
 plot_kmeans/
+piermaro/
+piermaro_log/
+re_job_cmd/

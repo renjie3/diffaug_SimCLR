@@ -4,6 +4,8 @@ MY_JOB_ROOT_PATH=`pwd`
 # echo $MY_JOB_ROOT_PATH
 cd $MY_JOB_ROOT_PATH
 
+DATE_NAME=$1
+
 MYTIME="3:50:00"
 MYCPU="5"
 MYGPUTYPE="v100s"
@@ -22,22 +24,24 @@ JOB_INFO="cifar10 baseline"
 # # MYCOMMEND2="No_commend2"
 # MYCOMMEND3="No_commend3"
 
-source ./re_job_cmd.sh
+source ./re_job_cmd/${DATE_NAME}.sh
 
-cat ./slurm_files/sconfigs1_cmse.sb > submit.sb
-echo "#SBATCH --gres=gpu:${MYGPUTYPE}:1"  >> submit.sb
-echo "#SBATCH --time=${MYTIME}             # limit of wall clock time - how long the job will run (same as -t)" >> submit.sb
-echo "#SBATCH --cpus-per-task=${MYCPU}           # number of CPUs (or cores) per task (same as -c)" >> submit.sb
+cat ./slurm_files/sconfigs1_cmse.sb > submit_${DATE_NAME}.sb
+echo "#SBATCH --gres=gpu:${MYGPUTYPE}:1"  >> submit_${DATE_NAME}.sb
+echo "#SBATCH --time=${MYTIME}             # limit of wall clock time - how long the job will run (same as -t)" >> submit_${DATE_NAME}.sb
+echo "#SBATCH --cpus-per-task=${MYCPU}           # number of CPUs (or cores) per task (same as -c)" >> submit_${DATE_NAME}.sb
 # echo "#SBATCH --nodelist=nvl-001" >> submit.sb
-echo "#SBATCH -o ${MY_JOB_ROOT_PATH}/logfile/%j.log" >> submit.sb
-echo "#SBATCH -e ${MY_JOB_ROOT_PATH}/logfile/%j.err" >> submit.sb
-cat ./slurm_files/sconfigs2.sb >> submit.sb
-echo "JOB_INFO=\"${JOB_INFO}\"" >> submit.sb
-echo "MYCOMMEND=\"${MYCOMMEND} --job_id \${SLURM_JOB_ID}_1\"" >> submit.sb
-echo "MYCOMMEND2=\"${MYCOMMEND2} --job_id \${SLURM_JOB_ID}_2\"" >> submit.sb
-echo "MYCOMMEND3=\"${MYCOMMEND3} --job_id \${SLURM_JOB_ID}_3\"" >> submit.sb
-cat ./slurm_files/sconfigs3_re_job.sb >> submit.sb
-MY_RETURN=`sbatch submit.sb`
+echo "#SBATCH -o ${MY_JOB_ROOT_PATH}/logfile/%j.log" >> submit_${DATE_NAME}.sb
+echo "#SBATCH -e ${MY_JOB_ROOT_PATH}/logfile/%j.err" >> submit_${DATE_NAME}.sb
+cat ./slurm_files/sconfigs2.sb >> submit_${DATE_NAME}.sb
+echo "JOB_INFO=\"${JOB_INFO}\"" >> submit_${DATE_NAME}.sb
+echo "MYCOMMEND=\"${MYCOMMEND} --job_id \${SLURM_JOB_ID}_1\"" >> submit_${DATE_NAME}.sb
+echo "MYCOMMEND2=\"${MYCOMMEND2} --job_id \${SLURM_JOB_ID}_2\"" >> submit_${DATE_NAME}.sb
+echo "MYCOMMEND3=\"${MYCOMMEND3} --job_id \${SLURM_JOB_ID}_3\"" >> submit_${DATE_NAME}.sb
+cat ./slurm_files/sconfigs3_re_job.sb >> submit_${DATE_NAME}.sb
+MY_RETURN=`sbatch submit_${DATE_NAME}.sb`
+
+rm -f submit_${DATE_NAME}.sb
 
 # MY_RETURN="Submitted batch job 45160890"
 

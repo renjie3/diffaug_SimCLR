@@ -41,8 +41,6 @@ then
     rm -f ./FLAG_ROOM/RUNNING_FLAG_${SLURM_JOB_ID}
 fi
 
-echo -e "JobID:$SLURM_JOB_ID \n JOB_INFO: ${JOB_INFO} \n Python_command: \n ${MYCOMMEND} \n ${MYCOMMEND2} \n ${MYCOMMEND3} \n " | mail -s "[Done] ${SLURM_JOB_ID}" thurenjie@outlook.com
-
 date >>${MY_ROOT_PATH}finish_subjob_history.log
 echo $SLURM_JOB_ID >>${MY_ROOT_PATH}finish_subjob_history.log
 echo $JOB_INFO >>${MY_ROOT_PATH}finish_subjob_history.log

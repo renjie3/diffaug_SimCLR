@@ -20,6 +20,8 @@ parser.add_argument('--train_mode', default='normal', type=str, choices=['normal
 parser.add_argument('--curriculum', default='', type=str, choices=['', 'no', 'DBindex_high2low', 'DBindex_cluster_GT', 'DBindex_cluster_kmeans', 'DBindex_cluster_momentum_kmeans', 'DBindex_ratio_inst_cluster_GT', 'DBindex_product_inst_cluster_GT', 'DBindex_cluster_GT_org_sample_only', 'mass_candidate', 'mass_candidate_replacement', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2', 'DBindex_cluster_momentum_kmeans_repeat_v2_weighted_cluster', 'DBindex_cluster_momentum_kmeans_repeat_v2_mean_dbindex'], help='How to reorder curriculum learning.')
 parser.add_argument('--mass_candidate', default='', type=str, choices=['', 'mass_candidate', 'mass_candidate_replacement'], help='How to')
 parser.add_argument('--curriculum_scheduler', default='0_0.5_1', type=str, choices=['', '0_0.5_1', '0_1_1'], help='curriculum_scheduler')
+parser.add_argument('--load_piermaro_model', action='store_true', default=False)
+parser.add_argument('--load_piermaro_model_path', default='', type=str, help='Path to load model.')
 parser.add_argument('--load_model', action='store_true', default=False)
 parser.add_argument('--load_model_path', default='', type=str, help='Path to load model.')
 parser.add_argument('--piermaro_whole_epoch', default='', type=str, help='Whole epoch when use re_job to train')
@@ -56,6 +58,8 @@ parser.add_argument('--kmeans_just_plot', action='store_true', default=False)
 parser.add_argument('--kmeans_plot', action='store_true', default=False)
 parser.add_argument('--load_momentum_model', action='store_true', default=False)
 parser.add_argument('--kmeans_just_plot_test', action='store_true', default=False)
+parser.add_argument('--kornia_transform', action='store_true', default=False)
+parser.add_argument('--restore_best_test_acc_model', action='store_true', default=False)
 
 parser.add_argument('--attack_steps', default=10, type=int, help='perturb number of steps')
 
@@ -118,7 +122,8 @@ def train_batch(net, pos_1, pos_2, target, train_optimizer, ifm_epsilon, weight_
     else:
         dbindex_loss = 0
 
-    pos_1, pos_2 = my_transform(pos_1), my_transform(pos_2)
+    if args.kornia_transform:
+        pos_1, pos_2 = my_transform(pos_1), my_transform(pos_2)
 
     feature_1, out_1 = net(pos_1)
     feature_2, out_2 = net(pos_2)
@@ -168,7 +173,8 @@ def train_batch_kmeans(net, pos_1, pos_2, target, train_optimizer, ifm_epsilon, 
     else:
         dbindex_loss = 0
 
-    pos_1, pos_2 = my_transform(pos_1), my_transform(pos_2)
+    if args.kornia_transform:
+        pos_1, pos_2 = my_transform(pos_1), my_transform(pos_2)
 
     feature_1, out_1 = net(pos_1)
     feature_2, out_2 = net(pos_2)
@@ -291,7 +297,7 @@ def test(net, memory_data_loader, test_data_loader, epoch, epochs, ):
 # train for one epoch to learn unique features
 def train(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre):
 
-    if args.load_model and args.piermaro_whole_epoch != '':
+    if args.load_piermaro_model and args.piermaro_whole_epoch != '':
         results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
         for key in results.keys():
             load_list = []
@@ -323,7 +329,7 @@ def train(net, data_loader, train_optimizer, memory_loader, test_loader, tempera
         else:
             train_bar = tqdm(data_loader)
             for pos_1, pos_2, target in train_bar:
-                this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon)
+                this_loss, this_batch_size = train_batch(net, pos_1, pos_2, target, train_optimizer, args.ifm_epsilon)
 
                 total_num += this_batch_size
                 total_loss += this_loss
@@ -367,7 +373,7 @@ def train(net, data_loader, train_optimizer, memory_loader, test_loader, tempera
 
 def train_inst_suppress(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model):
 
-    if args.load_model and args.piermaro_whole_epoch != '':
+    if args.load_piermaro_model and args.piermaro_whole_epoch != '':
         results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
         for key in results.keys():
             load_list = []
@@ -457,7 +463,7 @@ def train_inst_suppress(net, data_loader, train_optimizer, memory_loader, test_l
 
 def curriculum(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model):
 
-    if args.load_model and args.piermaro_whole_epoch != '':
+    if args.load_piermaro_model and args.piermaro_whole_epoch != '':
         results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
         for key in results.keys():
             load_list = []
@@ -675,7 +681,7 @@ def adversarial_training(net, data_loader, train_optimizer, memory_loader, test_
 
 def auto_aug(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model):
 
-    if args.load_model and args.piermaro_whole_epoch != '':
+    if args.load_piermaro_model and args.piermaro_whole_epoch != '':
         results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
         for key in results.keys():
             load_list = []
@@ -707,7 +713,7 @@ def just_plot(net, data_loader, train_optimizer, memory_loader, test_loader, tem
 # train for one epoch to learn unique features
 def train_dbindex_loss(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre):
 
-    if args.load_model and args.piermaro_whole_epoch != '':
+    if args.load_piermaro_model and args.piermaro_whole_epoch != '':
         results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
         for key in results.keys():
             load_list = []
@@ -729,14 +735,14 @@ def train_dbindex_loss(net, data_loader, train_optimizer, memory_loader, test_lo
         total_loss, total_num = 0.0, 0
         # print(args.restore_k_when_start, epoch, args.start_dbindex_loss_epoch, args.curriculum)
         # input()
-        if args.restore_k_when_start and epoch == args.start_dbindex_loss_epoch and args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
+        if args.restore_k_when_start and args.piermaro_restart_epoch + epoch == args.start_dbindex_loss_epoch and args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
             net.restore_k_with_q()
         if args.my_train_loader:
             if args.kmeans_plot and epoch % 2 == 1:
                 flag_kmeans_plot = True
             else:
                 flag_kmeans_plot = False
-            if (args.curriculum == 'DBindex_cluster_momentum_kmeans_wholeset' and epoch > args.start_dbindex_loss_epoch):
+            if (args.curriculum == 'DBindex_cluster_momentum_kmeans_wholeset' and args.piermaro_restart_epoch + epoch > args.start_dbindex_loss_epoch):
                 kmeans_batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=False, drop_last=False)
                 kmeans_labels_list = []
                 cluster_centers_list = []
@@ -804,7 +810,7 @@ def train_dbindex_loss(net, data_loader, train_optimizer, memory_loader, test_lo
             train_bar = tqdm(batch_idx_list)
             for batch_idx in train_bar:
                 pos_1, target = data_loader.get_batch(batch_idx)
-                if epoch > args.start_dbindex_loss_epoch:
+                if args.piermaro_restart_epoch + epoch > args.start_dbindex_loss_epoch:
                     this_loss, this_batch_size = train_batch_kmeans(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss)
                 else:
                     this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, 0)
@@ -854,30 +860,39 @@ def train_dbindex_loss(net, data_loader, train_optimizer, memory_loader, test_lo
 
 def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, train_data):
 
-    if args.load_model and args.piermaro_whole_epoch != '':
+    if args.load_piermaro_model and args.piermaro_whole_epoch != '':
         results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
         for key in results.keys():
             load_list = []
             for i in range(len(results[key])):
                 load_list.append(results[key][i+1])
             results[key] = load_list
+        best_test_acc = results['best_test_acc'][len(results['best_test_acc'])-1]
+        best_train_loss = results['best_train_loss'][len(results['best_train_loss'])-1]
+        best_test_acc_loss = results['best_test_acc_loss'][len(results['best_test_acc_loss'])-1]
+        best_train_loss_acc = results['best_train_loss_acc'][len(results['best_train_loss_acc'])-1]
     else:
         results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': []}
+        best_test_acc = 0.0
+        best_train_loss = 10
+        best_test_acc_loss = 7.1
+        best_train_loss_acc = 0.0
     if not os.path.exists('results'):
         os.mkdir('results')
-    best_test_acc = 0.0
-    best_test_acc_loss = 7.1
-    best_train_loss = 10
-    best_train_loss_acc = 0.0
     for epoch in range(1, epochs + 1):
         net.train()
         total_loss, total_num = 0.0, 0
-        if args.restore_k_when_start and epoch == args.start_dbindex_loss_epoch and args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
-            net.restore_k_with_q()
+        if args.restore_k_when_start and args.piermaro_restart_epoch + epoch == args.start_dbindex_loss_epoch and args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
+            if args.restore_best_test_acc_model:
+                best_acc_model_path = 'results/{}_best_test_acc_model.pth'.format(save_name_pre)
+                checkpoints = torch.load(best_acc_model_path, map_location=device)
+                net.load_state_dict(checkpoints)
+            else:
+                net.restore_k_with_q()
         if args.my_train_loader:
             raise("Please use train_dbindex_loss().")
         else:
-            if (args.curriculum == 'DBindex_cluster_momentum_kmeans_wholeset' and epoch > args.start_dbindex_loss_epoch):
+            if (args.curriculum == 'DBindex_cluster_momentum_kmeans_wholeset' and args.piermaro_restart_epoch + epoch > args.start_dbindex_loss_epoch):
                 kmeans_loader = DataLoader(train_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True, drop_last=False)
                 kmeans_labels_list = []
                 cluster_centers_list = []
@@ -899,13 +914,19 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
 
                 kmeans_targets = torch.stack(kmeans_labels_list, dim=1)
                 train_data.targets = kmeans_targets
+
+                del kmeans_feature
+                torch.cuda.empty_cache()
                     
             train_bar = tqdm(data_loader)
             for pos_1, pos_2, target in train_bar:
-                if epoch > args.start_dbindex_loss_epoch:
-                    this_loss, this_batch_size = train_batch_kmeans(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss)
+                # print(pos_1)
+                # print(torch.max(pos_1))
+                # input()
+                if args.piermaro_restart_epoch + epoch > args.start_dbindex_loss_epoch:
+                    this_loss, this_batch_size = train_batch_kmeans(net, pos_1, pos_2, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss)
                 else:
-                    this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, 0)
+                    this_loss, this_batch_size = train_batch(net, pos_1, pos_2, target, train_optimizer, args.ifm_epsilon, 0)
                 if args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
                     net._momentum_update_key_encoder()
 
@@ -955,10 +976,15 @@ if __name__ == '__main__':
     batch_size, epochs = args.batch_size, args.epochs
 
     # data prepare
-    train_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
+    if args.kornia_transform:
+        train_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
+    else:
+        if args.data_name != 'whole_cifar10' and args.train_mode not in ['normal', 'train_dbindex_loss']:
+            raise("Please use whole_cifar10")
+        train_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.train_transform, download=True, data_name=args.data_name)
     if args.train_mode in ["normal", "train_dbindex_loss"]:
         if not args.my_train_loader:
-            train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=flag_shuffle_train_data, num_workers=2, pin_memory=True, drop_last=args.train_data_drop_last)
+            train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=flag_shuffle_train_data, num_workers=10, pin_memory=True, drop_last=args.train_data_drop_last)
         else:
             train_loader = ByIndexDataLoader(train_data)
     else:
@@ -966,8 +992,8 @@ if __name__ == '__main__':
     memory_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
     test_data = utils.CIFAR10Pair(root='data', train=False, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
     if not args.my_test_loader:
-        memory_loader = DataLoader(memory_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True)
-        test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True)
+        memory_loader = DataLoader(memory_data, batch_size=batch_size, shuffle=False, num_workers=10, pin_memory=True)
+        test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=10, pin_memory=True)
     else:
         memory_loader = ByIndexDataLoader(memory_data)
         test_loader = ByIndexDataLoader(test_data)
@@ -997,7 +1023,7 @@ if __name__ == '__main__':
             model.key_model.load_state_dict(checkpoints)
             # logger.info("File %s loaded!" % (load_model_path))
 
-    if args.pretrain_model_path != '':
+    if args.pretrain_model_path != '': # This is to use pre-trained model to get DBindex instead of warm start model.
         pretrain_model = Model(feature_dim, arch=args.arch).cuda()
         flops, params = profile(pretrain_model, inputs=(torch.randn(1, 3, 32, 32).cuda(),))
         flops, params = clever_format([flops, params])
@@ -1008,14 +1034,21 @@ if __name__ == '__main__':
     else:
         pretrain_model = None
 
+    if args.load_piermaro_model:
+        load_model_path = './results/{}.pth'.format(args.load_piermaro_model_path)
+        checkpoints = torch.load(load_model_path, map_location=device)
+        model.load_state_dict(checkpoints)
+        del checkpoints
+        torch.cuda.empty_cache()
+
     if args.piermaro_whole_epoch == '':
-        save_name_pre = '{}_{}_{}_{}_{}_{}'.format(args.train_mode, args.job_id, datetime.datetime.now().strftime("%Y%m%d%H%M%S"), temperature, k, batch_size, epochs)
+        save_name_pre = '{}_{}_{}_{}_{}_{}_{}'.format(args.train_mode, args.job_id, datetime.datetime.now().strftime("%Y%m%d%H%M%S"), temperature, k, batch_size, epochs)
     else:
-        if args.load_model:
-            save_name_pre = args.load_model_path
+        if args.load_piermaro_model:
+            save_name_pre = args.load_piermaro_model_path
             save_name_pre = save_name_pre.replace("_piermaro_model", "").replace("_model", "")
         else:
-            save_name_pre = '{}_{}_{}_{}_{}_{}'.format(args.train_mode, args.job_id, datetime.datetime.now().strftime("%Y%m%d%H%M%S"), temperature, k, batch_size, args.piermaro_whole_epoch)
+            save_name_pre = '{}_{}_{}_{}_{}_{}_{}'.format(args.train_mode, args.job_id, datetime.datetime.now().strftime("%Y%m%d%H%M%S"), temperature, k, batch_size, args.piermaro_whole_epoch)
 
     optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-6)
     c = np.max(train_data.targets) + 1
