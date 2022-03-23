@@ -24,7 +24,7 @@ model2_list = []
 std_list = []
 
 csv_name = "_statistics_final_10_line.csv"
-# csv_name = "_statistics.csv"
+csv_name = "_statistics.csv"
 
 for job_id in job_ids:
     sub_job1 = job_id.strip() + '_1'
@@ -53,12 +53,11 @@ for job_id in job_ids:
             job2_train_loss_acc_results.append(results['best_train_loss_acc'][max_key])
 
 
-        if sub_job1 in name and ("128_model" in name or "512_model" in name):
+        if sub_job1 in name and "model" in name and "piermaro" not in name and "best_test_acc" not in name:
         # if sub_job1 in name and "_statistics.csv" in name:
             model1_list.append(name.replace(".pth", ""))
             
-        
-        if sub_job2 in name and ("128_model" in name or "512_model" in name):
+        if sub_job2 in name and "model" in name and "piermaro" not in name and "best_test_acc" not in name:
             model2_list.append(name.replace(".pth", ""))
         
 

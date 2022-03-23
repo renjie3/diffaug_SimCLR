@@ -1,0 +1,17 @@
+49104382  cmse-gpu   SimCLR  renjie3 PD       0:00      1 (Priority)
+49101475  cmse-gpu   SimCLR  renjie3  R      31:47      1 nvf-020
+49101478  cmse-gpu   SimCLR  renjie3  R      31:47      1 nvf-018
+49101467  cmse-gpu   SimCLR  renjie3  R      31:51      1 nvf-019
+是否确认后面不会再下降了
+
+49137477
+49137480
+用了out 来进行kmeans而不是feature之后 base bect_acc 88.66%
+
+49137567
+49137573 同上，base 1000_epochmodel
+
+49156685 49156686 用了whole set 的center 来计算 指令如下
+python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_48899799_1_20220319160643_0.5_200_512_1000_model --kornia_transform --train_data_drop_last --weight_dbindex_loss 0.2 --start_dbindex_loss_epoch 1 --restore_k_when_start --num_clusters 1000 1500 --repeat_num 1 --use_out_dbindex --use_wholeset_centroid --local 2 --no_save
+
+20220322211344 base 200 进行训练

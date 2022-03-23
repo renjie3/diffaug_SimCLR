@@ -23,11 +23,11 @@ JOB_INFO="cifar10 baseline"
 # normal_45921554_1_20220219224232_0.5_200_128_model
 # normal_45934552_2_20220220113003_0.5_200_128_best_test_acc_model
 # 4 5 7 10 15 20
-# --plot_n_cluster 4 7 15 --kmeans_plot DBindex_cluster_momentum_kmeans_repeat_v2_mean_dbindex DBindex_cluster_momentum_kmeans_repeat_v2_weighted_cluster
+# --plot_n_cluster 4 7 15 --kmeans_plot DBindex_cluster_momentum_kmeans_repeat_v2 _mean_dbindex DBindex_cluster_momentum_kmeans_repeat_v2_weighted_cluster
 
-MYCOMMEND="python main.py --batch_size 128 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path $1 --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1"
+MYCOMMEND="python main.py --batch_size 128 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path $1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1"
 
-MYCOMMEND2="python main.py --batch_size 128 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path $1 --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1000 --restore_k_when_start --num_clusters 20 30 50 --repeat_num 5"
+MYCOMMEND2="python main.py --batch_size 512 --epochs 300 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path $1 --train_data_drop_last --my_train_loader --kornia_transform --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1 --restore_k_when_start --num_clusters 10 15 20 40 --repeat_num 1"
 
 MYCOMMEND3="python main.py --batch_size 128 --epochs 1000 --arch resnet18 --data_name cifar10_1024_4class --train_mode normal --train_data_drop_last"
 
@@ -36,8 +36,8 @@ MYCOMMEND3="python main.py --batch_size 128 --epochs 1000 --arch resnet18 --data
 MYCOMMEND2="No_commend2"
 MYCOMMEND3="No_commend3"
 
-cat ./slurm_files/sconfigs1_cmse.sb > submit.sb
-# cat ./slurm_files/sconfigs1.sb > submit.sb
+# cat ./slurm_files/sconfigs1_cmse.sb > submit.sb
+cat ./slurm_files/sconfigs1.sb > submit.sb
 echo "#SBATCH --gres=gpu:${MYGPUTYPE}:1"  >> submit.sb
 echo "#SBATCH --time=${MYTIME}             # limit of wall clock time - how long the job will run (same as -t)" >> submit.sb
 echo "#SBATCH --cpus-per-task=${MYCPU}           # number of CPUs (or cores) per task (same as -c)" >> submit.sb

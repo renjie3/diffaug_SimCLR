@@ -20,6 +20,8 @@ from matplotlib.colors import ListedColormap
 
 from tqdm import tqdm
 
+import faiss
+
 # from inst_suppress_utils import get_batch_idx_group
 from kmeans_pytorch import kmeans
 
@@ -85,6 +87,52 @@ class CIFAR10Pair(CIFAR10):
             target = self.target_transform(target)
 
         return pos_1, pos_2, target
+
+
+class CIFAR10Triple(CIFAR10):
+    """CIFAR10 Dataset.
+    """
+
+    def __init__(
+        self,
+        root: str,
+        train: bool = True,
+        transform: Optional[Callable] = None,
+        target_transform: Optional[Callable] = None,
+        download: bool = False,
+        data_name: str = "cifar10_1024_4class"
+    ) -> None:
+
+        super(CIFAR10Triple, self).__init__(root, train=train, transform=transform, target_transform=target_transform, download=download)
+        if data_name != 'whole_cifar10':
+            sampled_filepath = os.path.join(root, "sampled_cifar10", "{}.pkl".format(data_name))
+            with open(sampled_filepath, "rb") as f:
+                sampled_data = pickle.load(f)
+            if train:
+                self.data = sampled_data["train_data"]
+                self.targets = np.array(sampled_data["train_targets"])
+            else:
+                self.data = sampled_data["test_data"]
+                self.targets = np.array(sampled_data["test_targets"])
+        
+        else:
+            self.targets = np.array(self.targets)
+
+        # print("class_to_idx", self.class_to_idx)
+
+    def __getitem__(self, index):
+        img, target = self.data[index], self.targets[index]
+        img = Image.fromarray(img)
+
+        if self.transform is not None:
+            pos_1 = self.transform(img)
+            pos_2 = self.transform(img)
+            pos_org = ToTensor_transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return pos_1, pos_2, pos_org, target
 
 
 train_transform = transforms.Compose([
@@ -265,7 +313,10 @@ def plot_kmeans(feature_bank, GT_label, save_name_pre, kmeans_labels_list):
         
         feature_tsne_input = feature_bank.detach().cpu().numpy()
         if i == 0:
-            plot_labels_colar = labels
+            if torch.is_tensor(labels):
+                plot_labels_colar = labels.detach().cpu().numpy()
+            else:
+                plot_labels_colar = labels
         else:
             plot_labels_colar = labels.detach().cpu().numpy()
         feature_tsne_output = tsne.fit_transform(feature_tsne_input)
@@ -383,7 +434,7 @@ def plot_kmeans_train_test(feature_bank, GT_label, save_name_pre, kmeans_labels_
             plt.savefig('./plot_kmeans/{}/{}_{}.png'.format(save_name_pre, c, save_name_pre))
         plt.close()
 
-def plot_kmeans_epoch(feature_bank, GT_label, save_name_pre, kmeans_labels_list, epoch):
+def plot_kmeans_epoch(feature_bank, GT_label, save_name_pre, kmeans_labels_list, epoch, plot_num):
 
     tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
 
@@ -410,11 +461,11 @@ def plot_kmeans_epoch(feature_bank, GT_label, save_name_pre, kmeans_labels_list,
 
     for i, labels in enumerate(labels_list):
         
-        feature_tsne_input = feature_bank.detach().cpu().numpy()
+        feature_tsne_input = feature_bank[:plot_num].detach().cpu().numpy()
         if i == 0:
-            plot_labels_colar = labels
+            plot_labels_colar = labels[:plot_num]
         else:
-            plot_labels_colar = labels.detach().cpu().numpy()
+            plot_labels_colar = labels.detach().cpu().numpy()[:plot_num]
         feature_tsne_output = tsne.fit_transform(feature_tsne_input)
         c = np.max(plot_labels_colar) + 1
         
@@ -519,3 +570,72 @@ def test_instance_sim(net, memory_data_loader, test_data_loader, augmentation_pr
         # input(easy_50)
 
     return total_top1 / total_num * 100, total_top5 / total_num * 100
+
+def run_kmeans(x, num_clusters, device, temperature):
+    """
+    Args:
+        x: data to be clustered
+    """
+    
+    print('performing kmeans clustering')
+    results = {'im2cluster':[],'centroids':[],'density':[]}
+    
+    for seed, num_cluster in enumerate(num_clusters):
+        # intialize faiss clustering parameters
+        d = x.shape[1]
+        k = int(num_cluster)
+        clus = faiss.Clustering(d, k)
+        clus.verbose = True
+        clus.niter = 20
+        clus.nredo = 5
+        clus.seed = seed
+        clus.max_points_per_centroid = 1000
+        clus.min_points_per_centroid = 10
+
+        res = faiss.StandardGpuResources()
+        cfg = faiss.GpuIndexFlatConfig()
+        cfg.useFloat16 = False
+        cfg.device = device    
+        index = faiss.GpuIndexFlatL2(res, d, cfg)  
+
+        clus.train(x, index)   
+
+        D, I = index.search(x, 1) # for each sample, find cluster distance and assignments
+        im2cluster = [int(n[0]) for n in I]
+        
+        # get cluster centroids
+        centroids = faiss.vector_to_array(clus.centroids).reshape(k,d)
+        
+        # sample-to-centroid distances for each cluster 
+        Dcluster = [[] for c in range(k)]          
+        for im,i in enumerate(im2cluster):
+            Dcluster[i].append(D[im][0])
+        
+        # concentration estimation (phi)        
+        density = np.zeros(k)
+        for i,dist in enumerate(Dcluster):
+            if len(dist)>1:
+                d = (np.asarray(dist)**0.5).mean()
+                density[i] = d     
+                
+        # #if cluster only has one point, use the max to estimate its concentration        
+        # dmax = density.max()
+        # for i,dist in enumerate(Dcluster):
+        #     if len(dist)<=1:
+        #         density[i] = dmax
+
+        density = density.clip(0, np.percentile(density,90)) #clamp extreme values for stability
+        # density = temperature*density/density.mean()  #scale the mean to temperature 
+        
+        # convert to cuda Tensors for broadcast
+        centroids = torch.Tensor(centroids).cuda()
+        centroids = nn.functional.normalize(centroids, p=2, dim=1)
+
+        im2cluster = torch.LongTensor(im2cluster).cuda()               
+        density = torch.Tensor(density).cuda()
+        
+        results['centroids'].append(centroids)
+        results['density'].append(density)
+        results['im2cluster'].append(im2cluster)    
+        
+    return results

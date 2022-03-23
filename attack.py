@@ -320,7 +320,7 @@ class PGD():
         print(metrics.davies_bouldin_score(sample, new_label))
 
 
-def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clusters, repeat_num):
+def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clusters, repeat_num, use_out_dbindex, use_sim, kmean_result, use_wholeset_centroid, use_mean_dbindex, flag_select_confidence):
 
     # repeat_num = 5
     if loss_type in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset']:
@@ -329,29 +329,198 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
             for i in range(repeat_num):
                 aug_sample = my_transform(x)
                 feature, out = net.momentum_encoder(aug_sample)
-                momentum_encoder_sample.append(feature)
+                if use_out_dbindex:
+                    momentum_encoder_sample.append(out)
+                else:
+                    momentum_encoder_sample.append(feature)
             momentum_encoder_sample = torch.cat(momentum_encoder_sample, dim=0).double()
         else:
-            feature, out = net(x)
-            momentum_encoder_sample = feature.double()
+            feature, out = net.momentum_encoder(x)
+            if use_out_dbindex:
+                # input('check here')
+                momentum_encoder_sample = out.double()
+            else:
+                momentum_encoder_sample = feature.double()
 
     # DBindex_cluster_momentum_kmeans_repeat_v2
     if loss_type in ['DBindex_cluster_momentum_kmeans_repeat_v2', 'DBindex_cluster_momentum_kmeans_repeat_v2_weighted_cluster', 'DBindex_cluster_momentum_kmeans_repeat_v2_mean_dbindex']:
-        feature, out = net(x)
-        momentum_encoder_sample = feature.double()
+        feature, out = net.momentum_encoder(x) # here it requires checck
+        if use_out_dbindex:
+            momentum_encoder_sample = out.double()
+        else:
+            momentum_encoder_sample = feature.double()
     
     if repeat_num != 1:
         sample = []
         for i in range(repeat_num):
             aug_sample = my_transform(x)
-            feature, out = net(aug_sample)
-            sample.append(feature)
+            feature, out = net(aug_sample.detach())
+            if use_out_dbindex:
+                sample.append(out)
+            else:
+                sample.append(feature)
         sample = torch.cat(sample, dim=0).double()
     else:
         feature, out = net(x)
-        sample = feature.double()
+        if use_out_dbindex:
+            # input('check here')
+            sample = out.double()
+        else:
+            sample = feature.double()
 
-    if loss_type == 'DBindex_high2low':
+    if loss_type == 'DBindex_cluster_momentum_kmeans_wholeset':
+        if len(num_clusters) <= 1 and np.sum(num_clusters) == 0:
+            num_clusters = [4, 5, 7, 10, 15, 20]
+        loss = 0
+        for num_cluster_idx in range(len(num_clusters)):
+            kmeans_labels = labels[:, num_cluster_idx]
+            cluster_label = kmeans_labels.repeat((repeat_num, ))
+            point_dis_to_center_list = []
+            if not use_sim:
+                class_center = []
+                intra_class_dis = []
+                c = torch.max(cluster_label) + 1
+                for i in range(c):
+                    idx_i = torch.where(cluster_label == i)[0]
+                    class_i = sample[idx_i, :]
+                    if not use_wholeset_centroid:
+                        class_i_center = class_i.mean(dim=0)
+                    else:
+                        class_i_center = kmean_result['centroids'][num_cluster_idx][i].detach()
+                        # print(class_i_center.shape)
+                        # input('check here')
+                    if idx_i.shape[0] == 0:
+                        continue
+                    class_center.append(class_i_center)
+                    point_dis_to_center = torch.sqrt(torch.sum((class_i-class_i_center)**2, dim = 1))
+                    if flag_select_confidence:
+                        thre = 0.3
+                        point_dis_to_center = point_dis_to_center[point_dis_to_center < thre]
+                        if point_dis_to_center.shape[0] == 0:
+                            class_center.pop()
+                            continue
+                            # input('yes')
+                    # print(torch.max(torch.sqrt(torch.sum((class_i-class_i_center)**2, dim = 1))))
+                    point_dis_to_center_list.append(point_dis_to_center)
+                    intra_class_dis.append(torch.mean(point_dis_to_center))
+                    # intra_class_dis.append(torch.mean(torch.sqrt(torch.sum((class_i-class_i_center)*0, dim = 1))))
+                if len(class_center) <= 1:
+                    continue
+                class_center = torch.stack(class_center, dim=0)
+                # input('no')
+
+                c = len(intra_class_dis)
+                
+                class_dis = torch.cdist(class_center, class_center, p=2)
+                # print(class_dis)
+
+                # if flag_select_confidence:
+                #     # class_dis - intra_class_dis
+                #     print(class_dis[0])
+                #     print(- torch.tensor(intra_class_dis).cuda() + class_dis[0])
+                #     intra_class_dis_tensor_row_same = torch.tensor(intra_class_dis).unsqueeze(0).repeat((c, 1)).cuda()
+                #     thre_inter_class = class_dis - intra_class_dis_tensor_row_same
+                #     mask = (torch.ones_like(class_dis) - torch.eye(class_dis.shape[0], device=class_dis.device)).bool()
+                #     thre_inter_class = thre_inter_class.masked_select(mask).view(thre_inter_class.shape[0], -1)
+                #     thre = torch.min(thre_inter_class, dim=1)[0]
+                #     intra_class_dis = []
+                #     for i in range(c):
+                #         class_mask = point_dis_to_center_list[i] < thre[i]
+
+                #     print(thre)
+                #     print(torch.sum(thre < 0))
+                #     print(torch.sum(thre > 0))
+                #     input()
+
+                mask = (torch.ones_like(class_dis) - torch.eye(class_dis.shape[0], device=class_dis.device)).bool()
+                class_dis = class_dis.masked_select(mask).view(class_dis.shape[0], -1)
+
+
+                intra_class_dis = torch.tensor(intra_class_dis).unsqueeze(1).repeat((1, c)).cuda()
+                trans_intra_class_dis = torch.transpose(intra_class_dis, 0, 1)
+                intra_class_dis_pair_sum = intra_class_dis + trans_intra_class_dis
+                intra_class_dis_pair_sum = intra_class_dis_pair_sum.masked_select(mask).view(intra_class_dis_pair_sum.shape[0], -1)
+
+                if use_mean_dbindex:
+                    # cluster_DB_loss = torch.max(intra_class_dis_pair_sum / class_dis, dim=1)[0].mean()
+                    cluster_DB_loss = (intra_class_dis_pair_sum / class_dis).mean()
+                else:
+                    cluster_DB_loss = torch.max(intra_class_dis_pair_sum / class_dis, dim=1)[0].mean()
+                # print(cluster_DB_loss)
+                # print(cluster_DB_loss_mean)
+                # print(intra_class_dis_pair_sum / class_dis)
+                # input()
+                # print("cluster_DB_loss", cluster_DB_loss.item())
+                # print(cluster_DB_loss)
+                # input()
+                loss -= cluster_DB_loss
+            else:
+                class_center = []
+                intra_class_sim = []
+                c = torch.max(cluster_label) + 1
+                for i in range(c):
+                    idx_i = torch.where(cluster_label == i)[0]
+                    class_i = sample[idx_i, :]
+                    class_i_center = class_i.mean(dim=0)
+                    if idx_i.shape[0] == 0:
+                        continue
+                    class_center.append(class_i_center)
+                    intra_class_sim.append(torch.mean(torch.mm(class_i, class_i_center.unsqueeze(1))))
+                    # intra_class_dis.append(torch.mean(torch.sqrt(torch.sum((class_i-class_i_center)*0, dim = 1))))
+                class_center = torch.stack(class_center, dim=0)
+
+                c = len(intra_class_sim)
+                
+                class_sim = torch.mm(class_center, class_center.t().contiguous())
+
+                mask = (torch.ones_like(class_sim) - torch.eye(class_sim.shape[0], device=class_sim.device)).bool()
+                class_sim = class_sim.masked_select(mask).view(class_sim.shape[0], -1)
+
+                intra_class_sim = torch.tensor(intra_class_sim).unsqueeze(1).repeat((1, c)).cuda()
+                trans_intra_class_sim = torch.transpose(intra_class_sim, 0, 1)
+                intra_class_sim_pair_sum = intra_class_sim + trans_intra_class_sim
+                intra_class_sim_pair_sum = intra_class_sim_pair_sum.masked_select(mask).view(intra_class_sim_pair_sum.shape[0], -1)
+
+                cluster_DB_loss = torch.min(class_sim / intra_class_sim_pair_sum, dim=1)[0].mean()
+                loss -= cluster_DB_loss
+
+        # print(loss.item())
+        # input()
+
+    elif loss_type == 'DBindex_cluster_momentum_kmeans_repeat_v2':
+        if len(num_clusters) <= 1 and np.sum(num_clusters) == 0:
+            num_clusters = [4, 5, 7, 10, 15, 20]
+        loss = 0
+        for num_cluster_idx in range(len(num_clusters)):
+            kmeans_labels, cluster_centers = kmeans(
+                X=momentum_encoder_sample, num_clusters=num_clusters[num_cluster_idx], distance='euclidean', device=sample.device, tqdm_flag=False
+            )
+            cluster_label = kmeans_labels.repeat((repeat_num, ))
+            class_center = []
+            sort_class = []
+            intra_class_dis = []
+            c = torch.max(cluster_label) + 1
+            for i in range(c):
+                idx_i = torch.where(cluster_label == i)[0]
+                class_i = sample[idx_i, :]
+                class_i_center = class_i.mean(dim=0)
+                class_center.append(class_i_center)
+                intra_class_dis.append(torch.mean(torch.sqrt(torch.sum((class_i-class_i_center)**2, dim = 1))))
+            class_center = torch.stack(class_center, dim=0)
+            
+            class_dis = torch.cdist(class_center, class_center, p=2)
+            mask = (torch.ones_like(class_dis) - torch.eye(class_dis.shape[0], device=class_dis.device)).bool()
+            class_dis = class_dis.masked_select(mask).view(class_dis.shape[0], -1)
+
+            intra_class_dis = torch.tensor(intra_class_dis).unsqueeze(1).repeat((1, c)).cuda()
+            trans_intra_class_dis = torch.transpose(intra_class_dis, 0, 1)
+            intra_class_dis_pair_sum = intra_class_dis + trans_intra_class_dis
+            intra_class_dis_pair_sum = intra_class_dis_pair_sum.masked_select(mask).view(intra_class_dis_pair_sum.shape[0], -1)
+
+            cluster_DB_loss = torch.max(intra_class_dis_pair_sum / class_dis, dim=1)[0].mean()
+            loss -= cluster_DB_loss
+
+    elif loss_type == 'DBindex_high2low':
         # 'DBindex_high2low', 'DBindex_cluster_GT', 'DBindex_ratio_inst_cluster_GT', 
         inst_label = torch.arange(x.shape[0]).cuda()
         inst_label = inst_label.repeat((repeat_num, ))
@@ -573,39 +742,6 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
             cluster_DB_loss = torch.max(intra_class_dis_pair_sum / class_dis, dim=1)[0].mean()
             loss -= cluster_DB_loss
 
-    elif loss_type == 'DBindex_cluster_momentum_kmeans_repeat_v2':
-        if len(num_clusters) <= 1 and np.sum(num_clusters) == 0:
-            num_clusters = [4, 5, 7, 10, 15, 20]
-        loss = 0
-        for num_cluster_idx in range(len(num_clusters)):
-            kmeans_labels, cluster_centers = kmeans(
-                X=momentum_encoder_sample, num_clusters=num_clusters[num_cluster_idx], distance='euclidean', device=sample.device, tqdm_flag=False
-            )
-            cluster_label = kmeans_labels.repeat((repeat_num, ))
-            class_center = []
-            sort_class = []
-            intra_class_dis = []
-            c = torch.max(cluster_label) + 1
-            for i in range(c):
-                idx_i = torch.where(cluster_label == i)[0]
-                class_i = sample[idx_i, :]
-                class_i_center = class_i.mean(dim=0)
-                class_center.append(class_i_center)
-                intra_class_dis.append(torch.mean(torch.sqrt(torch.sum((class_i-class_i_center)**2, dim = 1))))
-            class_center = torch.stack(class_center, dim=0)
-            
-            class_dis = torch.cdist(class_center, class_center, p=2)
-            mask = (torch.ones_like(class_dis) - torch.eye(class_dis.shape[0], device=class_dis.device)).bool()
-            class_dis = class_dis.masked_select(mask).view(class_dis.shape[0], -1)
-
-            intra_class_dis = torch.tensor(intra_class_dis).unsqueeze(1).repeat((1, c)).cuda()
-            trans_intra_class_dis = torch.transpose(intra_class_dis, 0, 1)
-            intra_class_dis_pair_sum = intra_class_dis + trans_intra_class_dis
-            intra_class_dis_pair_sum = intra_class_dis_pair_sum.masked_select(mask).view(intra_class_dis_pair_sum.shape[0], -1)
-
-            cluster_DB_loss = torch.max(intra_class_dis_pair_sum / class_dis, dim=1)[0].mean()
-            loss -= cluster_DB_loss
-
     elif loss_type == 'DBindex_cluster_momentum_kmeans_repeat_v2_weighted_cluster':
         if len(num_clusters) <= 1 and np.sum(num_clusters) == 0:
             num_clusters = [4, 5, 7, 10, 15, 20]
@@ -673,47 +809,6 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
             intra_class_dis_pair_sum = intra_class_dis_pair_sum.masked_select(mask).view(intra_class_dis_pair_sum.shape[0], -1)
 
             cluster_DB_loss = (intra_class_dis_pair_sum / class_dis).mean()
-            loss -= cluster_DB_loss
-
-    elif loss_type == 'DBindex_cluster_momentum_kmeans_wholeset':
-        if len(num_clusters) <= 1 and np.sum(num_clusters) == 0:
-            num_clusters = [4, 5, 7, 10, 15, 20]
-        loss = 0
-        for num_cluster_idx in range(len(num_clusters)):
-            # kmeans_labels = kmeans_labels_list[num_cluster_idx][batch_idx]
-            kmeans_labels = labels[:, num_cluster_idx]
-            cluster_label = kmeans_labels.repeat((repeat_num, ))
-            class_center = []
-            sort_class = []
-            intra_class_dis = []
-            c = torch.max(cluster_label) + 1
-            for i in range(c):
-                idx_i = torch.where(cluster_label == i)[0]
-                class_i = sample[idx_i, :]
-                class_i_center = class_i.mean(dim=0)
-                if idx_i.shape[0] == 0:
-                    continue
-                    print(i, idx_i.shape[0])
-                    input('get')
-                class_center.append(class_i_center)
-                intra_class_dis.append(torch.mean(torch.sqrt(torch.sum((class_i-class_i_center)**2, dim = 1))))
-                # intra_class_dis.append(torch.mean(torch.sqrt(torch.sum((class_i-class_i_center)*0, dim = 1))))
-            class_center = torch.stack(class_center, dim=0)
-
-            c = len(intra_class_dis)
-            
-            class_dis = torch.cdist(class_center, class_center, p=2)
-
-
-            mask = (torch.ones_like(class_dis) - torch.eye(class_dis.shape[0], device=class_dis.device)).bool()
-            class_dis = class_dis.masked_select(mask).view(class_dis.shape[0], -1)
-
-            intra_class_dis = torch.tensor(intra_class_dis).unsqueeze(1).repeat((1, c)).cuda()
-            trans_intra_class_dis = torch.transpose(intra_class_dis, 0, 1)
-            intra_class_dis_pair_sum = intra_class_dis + trans_intra_class_dis
-            intra_class_dis_pair_sum = intra_class_dis_pair_sum.masked_select(mask).view(intra_class_dis_pair_sum.shape[0], -1)
-
-            cluster_DB_loss = torch.max(intra_class_dis_pair_sum / class_dis, dim=1)[0].mean()
             loss -= cluster_DB_loss
 
     if not reverse:

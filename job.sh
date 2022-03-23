@@ -16,28 +16,29 @@ JOB_INFO="cifar10 baseline"
 # 1778 0 1600 0.25 1333 0.5
 # 1389 0 1167 0.5
 # normal 1021
-# 'DBindex_high2low', 'DBindex_cluster_GT', 'DBindex_ratio_inst_cluster_GT', ### 'DBindex_product_inst_cluster_GT', #####'DBindex_cluster_GT_org_sample_only' DBindex_cluster_momentum_kmeans_repeat_v2_mean_dbindex DBindex_cluster_momentum_kmeans_repeat_v2_weighted_cluster
+# 'DBindex_high2low', 'DBindex_cluster_GT', 'DBindex_ratio_inst_cluster_GT', ### 'DBindex_product_inst_cluster_GT', #####'DBindex_cluster_GT_org_sample_only' DBindex_cluster_momentum_kmeans_repeat_v2 _mean_dbindex DBindex_cluster_momentum_kmeans_repeat_v2_weighted_cluster
 # all_in_flag random_last_3batch random_initial_model1
 # whole_cifar10 
 # --pretrain_model_path normal_45305664_1_20220207212804_0.5_200_512_model
 # normal_45921554_1_20220219224232_0.5_200_128_model
 # normal_45934552_2_20220220113003_0.5_200_128_best_test_acc_model
 # 4 5 7 10 15 20
+# 10 15 20 40
 # python main.py --batch_size 512 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --my_train_loader --kornia_transform  
 
-MYCOMMEND="python main.py --batch_size 512 --epochs 1000 --arch resnet18 --data_name whole_cifar10 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1000 --restore_k_when_start --num_clusters 10 15 20 40 --repeat_num 1"
+MYCOMMEND="python main.py --batch_size 512 --epochs 800 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_model --kornia_transform --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 1000 1500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence"
 
-MYCOMMEND2="python main.py --batch_size 512 --epochs 1000 --arch resnet18 --data_name whole_cifar10 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1000 --restore_k_when_start --num_clusters 10 15 20 40 --repeat_num 1"
+MYCOMMEND2="python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_48899696_1_20220319160643_0.5_200_512_1000_model --kornia_transform --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1 --restore_k_when_start --num_clusters 500 --repeat_num 1"
 
 MYCOMMEND3="python main.py --batch_size 128 --epochs 1000 --arch resnet18 --data_name cifar10_1024_4class --train_mode normal --train_data_drop_last"
 
 # normal_46334423_2_20220301154842_0.5_200_512_best_test_acc_model normal_46334424_2_20220301154842_0.5_200_512_model normal_46334425_2_20220301154959_0.5_200_512_model normal_46334426_2_20220301155011_0.5_200_512_model normal_46334427_2_20220301155120_0.5_200_512_model normal_46334428_2_20220301155152_0.5_200_512_model normal_46334429_2_20220301155216_0.5_200_512_model normal_46334430_2_20220301155216_0.5_200_512_model
 
-# MYCOMMEND2="No_commend2"
+MYCOMMEND2="No_commend2"
 MYCOMMEND3="No_commend3"
 
-# cat ./slurm_files/sconfigs1_cmse.sb > submit.sb
-cat ./slurm_files/sconfigs1.sb > submit.sb
+cat ./slurm_files/sconfigs1_cmse.sb > submit.sb
+# cat ./slurm_files/sconfigs1.sb > submit.sb
 echo "#SBATCH --gres=gpu:${MYGPUTYPE}:1"  >> submit.sb
 echo "#SBATCH --time=${MYTIME}             # limit of wall clock time - how long the job will run (same as -t)" >> submit.sb
 echo "#SBATCH --cpus-per-task=${MYCPU}           # number of CPUs (or cores) per task (same as -c)" >> submit.sb

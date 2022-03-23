@@ -67,8 +67,26 @@ class momentum_Model(nn.Module):
     @torch.no_grad()
     def restore_k_with_q(self):
         for param_q, param_k in zip(self.model.parameters(), self.key_model.parameters()):
+            # print(param_q.data)
+            # print(param_k.data)
+            # input('check')
             param_k.data.copy_(param_q.data)  # initialize
             param_k.requires_grad = False  # not update by gradient
+            # print(param_q.data)
+            # input('cehck1')
+            # print(param_k.data)
+            # input('check2')
+        
+        # input("restore_k_with_q")
+
+    @torch.no_grad()
+    def compare_k_with_q(self):
+        for param_q, param_k in zip(self.model.parameters(), self.key_model.parameters()):
+            print(param_q.data)
+            print(param_k.data)
+            print(torch.sum(param_q.data - param_k.data))
+            input()
+            
         
         # input("restore_k_with_q")
         

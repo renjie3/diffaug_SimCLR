@@ -1,40 +1,10 @@
 ---------------------------------------------------------------
-Sun Mar 13 22:57:05 EDT 2022
-47903253
+Tue Mar 22 15:51:45 EDT 2022
+49260763
 cifar10 baseline
-python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path normal_46334423_2_20220301154842_0.5_200_512_best_test_acc_model --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1
+python main.py --batch_size 512 --epochs 200 --arch resnet18 --data_name whole_cifar10 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --kornia_transform --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1001 --restore_k_when_start --num_clusters 10 15 20 40 --repeat_num 1
 ---------------------------------------------------------------
-Sun Mar 13 22:57:05 EDT 2022
-47903254
+Tue Mar 22 15:51:46 EDT 2022
+49260764
 cifar10 baseline
-python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path normal_46334424_2_20220301154842_0.5_200_512_best_test_acc_model --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1
----------------------------------------------------------------
-Sun Mar 13 22:57:05 EDT 2022
-47903255
-cifar10 baseline
-python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path normal_46334425_2_20220301154959_0.5_200_512_best_test_acc_model --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1
----------------------------------------------------------------
-Sun Mar 13 22:57:05 EDT 2022
-47903256
-cifar10 baseline
-python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path normal_46334426_2_20220301155011_0.5_200_512_best_test_acc_model --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1
----------------------------------------------------------------
-Sun Mar 13 22:57:06 EDT 2022
-47903257
-cifar10 baseline
-python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path normal_46334427_2_20220301155120_0.5_200_512_best_test_acc_model --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1
----------------------------------------------------------------
-Sun Mar 13 22:57:06 EDT 2022
-47903258
-cifar10 baseline
-python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path normal_46334428_2_20220301155152_0.5_200_512_best_test_acc_model --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1
----------------------------------------------------------------
-Sun Mar 13 22:57:06 EDT 2022
-47903259
-cifar10 baseline
-python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path normal_46334429_2_20220301155216_0.5_200_512_best_test_acc_model --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1
----------------------------------------------------------------
-Sun Mar 13 22:57:06 EDT 2022
-47903260
-cifar10 baseline
-python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name cifar10_1024_4class --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --load_model --load_model_path normal_46334430_2_20220301155216_0.5_200_512_best_test_acc_model --my_train_loader --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch -1 --restore_k_when_start --num_clusters 4 5 7 10 15 20 --repeat_num 1
+python main.py --batch_size 512 --epochs 200 --arch resnet18 --data_name whole_cifar10 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --kornia_transform --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1001 --restore_k_when_start --num_clusters 10 15 20 40 --repeat_num 1
