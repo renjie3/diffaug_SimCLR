@@ -21,3 +21,5 @@ piermaro/
 piermaro_log/
 re_job_cmd/
 piermaro_cmd/
+data/cifar-100-python.tar.gz
+data/cifar-100-python/

@@ -68,6 +68,10 @@ parser.add_argument('--use_mean_dbindex', action='store_true', default=False)
 parser.add_argument('--use_out_kmeans', action='store_true', default=False)
 parser.add_argument('--use_org_sample_dbindex', action='store_true', default=False)
 parser.add_argument('--flag_select_confidence', action='store_true', default=False)
+parser.add_argument('--reassign_step', default=1, type=int, help='gap of reassign labels')
+parser.add_argument('--confidence_thre', default=0.3, type=float, help='gap of reassign labels')
+parser.add_argument('--dataset', default='cifar10', type=str, help='what dataset to use')
+parser.add_argument('--final_high_conf_percent', default=0.5, type=float, help='gap of reassign labels')
 
 parser.add_argument('--attack_steps', default=10, type=int, help='perturb number of steps')
 
@@ -128,7 +132,7 @@ def train_batch(net, pos_1, pos_2, target, train_optimizer, ifm_epsilon, weight_
 
     if weight_dbindex_loss != 0:
         # get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform)
-        dbindex_loss = get_dbindex_loss(net, pos_1.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, args.flag_select_confidence)
+        dbindex_loss = get_dbindex_loss(net, pos_1.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, args.flag_select_confidence, args.confidence_thre)
     else:
         dbindex_loss = 0
 
@@ -206,7 +210,7 @@ def train_batch_kmeans(net, pos_1, pos_2, pos_org, target, train_optimizer, ifm_
     else:
         # raise('transform order wrong. Please use following')
         if weight_dbindex_loss != 0:
-            dbindex_loss = get_dbindex_loss(net, pos_org.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, args.use_out_dbindex, args.use_sim, kmean_result, args.use_wholeset_centroid, args.use_mean_dbindex, args.flag_select_confidence)
+            dbindex_loss = get_dbindex_loss(net, pos_org.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, args.use_out_dbindex, args.use_sim, kmean_result, args.use_wholeset_centroid, args.use_mean_dbindex, args.flag_select_confidence, args.confidence_thre)
         else:
             dbindex_loss = 0
 
@@ -410,505 +414,9 @@ def train(net, data_loader, train_optimizer, memory_loader, test_loader, tempera
         data_frame.to_csv('results/{}_statistics_final_10_line.csv'.format(save_name_pre), index_label='epoch')
         utils.plot_loss('results/{}_statistics'.format(save_name_pre))
 
-def train_inst_suppress(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model):
-
-    if args.load_piermaro_model and args.piermaro_whole_epoch != '':
-        results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
-        for key in results.keys():
-            load_list = []
-            for i in range(len(results[key])):
-                load_list.append(results[key][i+1])
-            results[key] = load_list
-    else:
-        results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': []}
-    if not os.path.exists('results'):
-        os.mkdir('results')
-    best_test_acc = 0.0
-    best_test_acc_loss = 10
-    best_train_loss = 10
-    best_train_loss_acc = 0.0
-    if args.piermaro_whole_epoch != '':
-        whole_epoch = int(args.piermaro_whole_epoch)
-    else:
-        whole_epoch = epochs
-    all_in_flag = False
-    hard_curriculum_id_list = None
-
-    total_batch_num = get_total_batch_num(data_loader.data_source.data.shape[0], batch_size=args.batch_size, drop_last=args.train_data_drop_last)
-
-    for epoch in range(1, epochs + 1):
-
-        if hard_curriculum_id_list == None or (args.piermaro_restart_epoch+epoch) % args.inst_suppress_sheduler_gap == 0:
-            not_shuffle_batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=False, drop_last=False)
-            hard_curriculum_batch_num = (args.piermaro_restart_epoch+epoch) // args.inst_suppress_sheduler_gap + int(args.start_batch_num_ratio * total_batch_num)
-            hard_curriculum_batch_num = min(hard_curriculum_batch_num, total_batch_num)
-            hard_curriculum_sample_num = hard_curriculum_batch_num * args.batch_size
-            if args.pretrain_model_path != '':
-                decrease_inst_sigma_id = get_decrease_inst_sigma_id(pretrain_model, not_shuffle_batch_idx_list, data_loader, args.reorder_reverse, use_out=args.use_out_reorder)
-            else:
-                decrease_inst_sigma_id = get_decrease_inst_sigma_id(net, not_shuffle_batch_idx_list, data_loader, args.reorder_reverse, use_out=args.use_out_reorder)
-
-        batch_sub_list = get_batch_idx_group(hard_curriculum_sample_num, batch_size=args.batch_size, shuffle=flag_shuffle_train_data, drop_last=args.train_data_drop_last)
-
-        inst_suppress_batch_idx = []
-        for batch_sub in batch_sub_list:
-            inst_suppress_batch_idx.append(decrease_inst_sigma_id[batch_sub])
-
-        net.train()
-        total_loss, total_num, train_bar = 0.0, 0, tqdm(inst_suppress_batch_idx)
-        for batch_idx in train_bar:
-            pos_1, target = data_loader.get_batch(batch_idx)
-            this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon)
-
-            total_num += this_batch_size
-            total_loss += this_loss
-            train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
-
-        train_loss =  total_loss / total_num
-
-        results['train_loss'].append(train_loss)
-        test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, epoch, epochs)
-        results['test_acc@1'].append(test_acc_1)
-        results['test_acc@5'].append(test_acc_5)
-        if train_loss < best_train_loss:
-            best_train_loss_acc = test_acc_1
-            best_train_loss = train_loss
-            if not args.no_save:
-                torch.save(net.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
-        if test_acc_1 > best_test_acc:
-            best_test_acc = test_acc_1
-            best_test_acc_loss = train_loss
-            if not args.no_save:
-                torch.save(net.state_dict(), 'results/{}_best_test_acc_model.pth'.format(save_name_pre))
-
-        results['best_test_acc'].append(best_test_acc)
-        results['best_test_acc_loss'].append(best_test_acc_loss)
-        results['best_train_loss'].append(best_train_loss)
-        results['best_train_loss_acc'].append(best_train_loss_acc)
-
-        if not args.no_save:
-            # save statistics
-            data_frame = pd.DataFrame(data=results, index=range(1, args.piermaro_restart_epoch + epoch + 1))
-            data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
-
-    if not args.no_save:
-        torch.save(net.state_dict(), 'results/{}_piermaro_model.pth'.format(save_name_pre))
-        for key in results.keys():
-            length = len(results[key])
-            results[key] = results[key][length-10:length]
-        data_frame = pd.DataFrame(data=results, index=range(args.piermaro_restart_epoch + epochs - 9, args.piermaro_restart_epoch + epochs + 1))
-        data_frame.to_csv('results/{}_statistics_final_10_line.csv'.format(save_name_pre), index_label='epoch')
-        utils.plot_loss('results/{}_statistics'.format(save_name_pre))
-
-def curriculum(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model):
-
-    if args.load_piermaro_model and args.piermaro_whole_epoch != '':
-        results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
-        for key in results.keys():
-            load_list = []
-            for i in range(len(results[key])):
-                load_list.append(results[key][i+1])
-            results[key] = load_list
-    else:
-        results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': []}
-    if not os.path.exists('results'):
-        os.mkdir('results')
-    best_test_acc = 0.0
-    best_test_acc_loss = 10
-    best_train_loss = 10
-    best_train_loss_acc = 0.0
-    if args.piermaro_whole_epoch != '':
-        whole_epoch = int(args.piermaro_whole_epoch)
-    else:
-        whole_epoch = epochs
-    all_in_flag = False
-    new_batch_idx_list = None
-    for epoch in range(1, epochs + 1):
-
-        batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=flag_shuffle_train_data, drop_last=args.train_data_drop_last)
-
-        if new_batch_idx_list == None or epoch % args.change_batch_step == 0:
-        
-            scheduler_length = get_scheduler_length(len(batch_idx_list), args.piermaro_restart_epoch+epoch, whole_epoch, args.start_batch_num_ratio, args.curriculum_scheduler)
-            scheduler_length = min(scheduler_length, len(batch_idx_list) - args.drop_last_new_batch)
-            # print(get_scheduler_length(len(batch_idx_list), args.piermaro_restart_epoch+1375, whole_epoch, args.start_batch_num_ratio, args.curriculum_scheduler))
-            if args.curriculum != 'no':
-                if args.pretrain_model_path == '':
-                    if args.mass_candidate in ["mass_candidate", "mass_candidate_replacement"]:
-                        new_batch_idx_list = sample_from_mass(net, data_loader, epoch, args.batch_size, scheduler_length, args.candidate_pool_size, args.use_out_reorder, args.reorder_reverse, args.curriculum, args.mass_candidate, all_in_flag, args.random_last_3batch)
-                    else:
-                        new_batch_idx_list = reorder_DBindex(net, batch_idx_list, data_loader, epoch, args.use_out_reorder, args.reorder_reverse, args.half_batch, args.curriculum)
-                else:
-                    if args.mass_candidate in ["mass_candidate", "mass_candidate_replacement"]:
-                        new_batch_idx_list = sample_from_mass(pretrain_model, data_loader, epoch, args.batch_size, scheduler_length, args.candidate_pool_size, args.use_out_reorder, args.reorder_reverse, args.curriculum, args.mass_candidate, all_in_flag, args.random_last_3batch)
-                    else:
-                        new_batch_idx_list = reorder_DBindex(pretrain_model, batch_idx_list, data_loader, epoch, args.use_out_reorder, args.reorder_reverse, args.half_batch, args.curriculum)
-            else:
-                new_batch_idx_list = batch_idx_list
-        
-        if args.debug:
-            print(new_batch_idx_list)
-            input()
-
-        net.train()
-        schedule_batch_idx_list = get_scheduler(new_batch_idx_list, args.piermaro_restart_epoch+epoch, whole_epoch, len(batch_idx_list), args.start_batch_num_ratio, args.curriculum_scheduler, args.shuffle_new_batch_list)
-        if len(batch_idx_list) == scheduler_length and args.all_in_flag:
-            all_in_flag = True
-        total_loss, total_num, train_bar = 0.0, 0, tqdm(schedule_batch_idx_list)
-        for batch_idx in train_bar:
-            pos_1, target = data_loader.get_batch(batch_idx)
-            this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon)
-
-            total_num += this_batch_size
-            total_loss += this_loss
-            train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
-
-        train_loss =  total_loss / total_num
-
-        results['train_loss'].append(train_loss)
-        test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, epoch, epochs)
-        results['test_acc@1'].append(test_acc_1)
-        results['test_acc@5'].append(test_acc_5)
-        if train_loss < best_train_loss:
-            best_train_loss_acc = test_acc_1
-            best_train_loss = train_loss
-            if not args.no_save:
-                torch.save(net.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
-        if test_acc_1 > best_test_acc:
-            best_test_acc = test_acc_1
-            best_test_acc_loss = train_loss
-            if not args.no_save:
-                torch.save(net.state_dict(), 'results/{}_best_test_acc_model.pth'.format(save_name_pre))
-
-        results['best_test_acc'].append(best_test_acc)
-        results['best_test_acc_loss'].append(best_test_acc_loss)
-        results['best_train_loss'].append(best_train_loss)
-        results['best_train_loss_acc'].append(best_train_loss_acc)
-
-        if not args.no_save:
-            # save statistics
-            data_frame = pd.DataFrame(data=results, index=range(1, args.piermaro_restart_epoch + epoch + 1))
-            data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
-
-    if not args.no_save:
-        torch.save(net.state_dict(), 'results/{}_piermaro_model.pth'.format(save_name_pre))
-        for key in results.keys():
-            length = len(results[key])
-            results[key] = results[key][length-10:length]
-        data_frame = pd.DataFrame(data=results, index=range(args.piermaro_restart_epoch + epochs - 9, args.piermaro_restart_epoch + epochs + 1))
-        data_frame.to_csv('results/{}_statistics_final_10_line.csv'.format(save_name_pre), index_label='epoch')
-        utils.plot_loss('results/{}_statistics'.format(save_name_pre))
-
-def adversarial_training(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model):
-
-    attack = PGD(model=net, epsilon=attack_epsilon, alpha=attack_alpha, min_val=0, max_val=1, max_iters=args.attack_steps, augmentation_prob=args.augmentation_prob, loss_type=args.curriculum, _type=args.attack_type,)
-    # def __init__(self, model, epsilon, alpha, min_val, max_val, max_iters, _type='linf'):
-
-    if args.load_model and args.piermaro_whole_epoch != '':
-        results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
-        for key in results.keys():
-            load_list = []
-            for i in range(len(results[key])):
-                load_list.append(results[key][i+1])
-            results[key] = load_list
-    else:
-        results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': []}
-    if not os.path.exists('results'):
-        os.mkdir('results')
-    best_test_acc = 0.0
-    best_test_acc_loss = 10
-    best_train_loss = 10
-    best_train_loss_acc = 0.0
-    if args.piermaro_whole_epoch != '':
-        whole_epoch = int(args.piermaro_whole_epoch)
-    else:
-        whole_epoch = epochs
-    all_in_flag = False
-    new_batch_idx_list = None
-
-    dataset_size = train_data.data.shape[0]
-    random_noise = torch.zeros(dataset_size, 3, 32, 32)
-
-    for epoch in range(1, epochs + 1):
-
-        if args.perturb_batchsize == 0:
-
-            batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=flag_shuffle_train_data, drop_last=args.train_data_drop_last)
-
-            total_loss, total_num, train_bar = 0.0, 0, tqdm(batch_idx_list)
-            for batch_idx in train_bar:
-                pos_1, target = data_loader.get_batch(batch_idx)
-                pos_1, target = pos_1.cuda(), target.cuda()
-                pos_1 = attack.perturb(pos_1, target, temperature, args.reorder_reverse, args.repeat_num)
-                # pos_1.requires_grad = False
-                pos_1.detach_()
-                net.train()
-                this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon)
-
-                total_num += this_batch_size
-                total_loss += this_loss
-                train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
-
-        else:
-            perturb_batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.perturb_batchsize, shuffle=False, drop_last=False)
-
-            train_bar = tqdm(perturb_batch_idx_list)
-            net.eval()
-            for batch_idx in train_bar:
-                pos_1, target = data_loader.get_batch(batch_idx)
-                batch_noise = random_noise[batch_idx]
-                perturb_pos_1 = pos_1 + batch_noise
-                perturb_pos_1, target = perturb_pos_1.cuda(), target.cuda()
-                perturb_pos_1 = attack.perturb(perturb_pos_1, target, temperature, args.reorder_reverse, args.repeat_num)
-                perturb_pos_1 = perturb_pos_1.detach().cpu()
-                random_noise[batch_idx] = perturb_pos_1 - pos_1
-                print(random_noise)
-                input()
-                train_bar.set_description('Train perturbation: [{}/{}] '.format(epoch, epochs))
-
-            batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=flag_shuffle_train_data, drop_last=args.train_data_drop_last)
-
-            total_loss, total_num, train_bar = 0.0, 0, tqdm(batch_idx_list)
-            for batch_idx in train_bar:
-                pos_1, target = data_loader.get_batch(batch_idx)
-                batch_noise = random_noise[batch_idx]
-                perturb_pos_1 = pos_1 + batch_noise
-                perturb_pos_1, target = perturb_pos_1.cuda(), target.cuda()
-                net.train()
-                perturb_pos_1.detach_()
-                this_loss, this_batch_size = train_batch(net, perturb_pos_1, perturb_pos_1, target, train_optimizer, args.ifm_epsilon)
-
-                total_num += this_batch_size
-                total_loss += this_loss
-                train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
-
-        train_loss =  total_loss / total_num
-
-        results['train_loss'].append(train_loss)
-        test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, epoch, epochs)
-        results['test_acc@1'].append(test_acc_1)
-        results['test_acc@5'].append(test_acc_5)
-        if train_loss < best_train_loss:
-            best_train_loss_acc = test_acc_1
-            best_train_loss = train_loss
-            if not args.no_save:
-                torch.save(net.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
-        if test_acc_1 > best_test_acc:
-            best_test_acc = test_acc_1
-            best_test_acc_loss = train_loss
-            if not args.no_save:
-                torch.save(net.state_dict(), 'results/{}_best_test_acc_model.pth'.format(save_name_pre))
-
-        results['best_test_acc'].append(best_test_acc)
-        results['best_test_acc_loss'].append(best_test_acc_loss)
-        results['best_train_loss'].append(best_train_loss)
-        results['best_train_loss_acc'].append(best_train_loss_acc)
-
-        if not args.no_save:
-            # save statistics
-            data_frame = pd.DataFrame(data=results, index=range(1, args.piermaro_restart_epoch + epoch + 1))
-            data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
-
-    if not args.no_save:
-        torch.save(net.state_dict(), 'results/{}_piermaro_model.pth'.format(save_name_pre))
-        for key in results.keys():
-            length = len(results[key])
-            results[key] = results[key][length-10:length]
-        data_frame = pd.DataFrame(data=results, index=range(args.piermaro_restart_epoch + epochs - 9, args.piermaro_restart_epoch + epochs + 1))
-        data_frame.to_csv('results/{}_statistics_final_10_line.csv'.format(save_name_pre), index_label='epoch')
-        utils.plot_loss('results/{}_statistics'.format(save_name_pre))
-
-def auto_aug(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model):
-
-    if args.load_piermaro_model and args.piermaro_whole_epoch != '':
-        results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
-        for key in results.keys():
-            load_list = []
-            for i in range(len(results[key])):
-                load_list.append(results[key][i+1])
-            results[key] = load_list
-    else:
-        results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': []}
-    if not os.path.exists('results'):
-        os.mkdir('results')
-    best_test_acc = 0.0
-    best_test_acc_loss = 10
-    best_train_loss = 10
-    best_train_loss_acc = 0.0
-    if args.piermaro_whole_epoch != '':
-        whole_epoch = int(args.piermaro_whole_epoch)
-    else:
-        whole_epoch = epochs
-
-    if pretrain_model == None:
-        get_aug(net, data_loader, args.batch_size, args.use_out_reorder, args.augmentation_prob, args.color_jitter_strength, args.save_aug_file_name)
-    else:
-        get_aug(pretrain_model, data_loader, args.batch_size, args.use_out_reorder, args.augmentation_prob, args.color_jitter_strength, args.save_aug_file_name)
-
 
 def just_plot(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre):
     utils.plot_loss('results/{}_statistics'.format(args.load_model_path.replace("_model", "")))
-
-# train for one epoch to learn unique features
-def train_dbindex_loss(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre):
-    # input('check loss')
-    if args.load_piermaro_model and args.piermaro_whole_epoch != '':
-        results = pd.read_csv('./results/{}_statistics.csv'.format(save_name_pre), index_col='epoch').to_dict()
-        for key in results.keys():
-            load_list = []
-            for i in range(len(results[key])):
-                load_list.append(results[key][i+1])
-            results[key] = load_list
-    else:
-        results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': []}
-    if not os.path.exists('results'):
-        os.mkdir('results')
-    best_test_acc = 0.0
-    best_test_acc_loss = 7.1
-    best_train_loss = 10
-    best_train_loss_acc = 0.0
-    for epoch in range(1, epochs + 1):
-        # test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, epoch, epochs)
-        # print(test_acc_1, test_acc_5)
-        if args.my_train_loader:
-            batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=flag_shuffle_train_data, drop_last=args.train_data_drop_last)
-        net.train()
-        total_loss, total_num = 0.0, 0
-        # print(args.restore_k_when_start, epoch, args.start_dbindex_loss_epoch, args.curriculum)
-        # input()
-        if args.restore_k_when_start and args.piermaro_restart_epoch + epoch == args.start_dbindex_loss_epoch and args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
-            net.restore_k_with_q()
-        if args.my_train_loader:
-            # input('check here')
-            if args.kmeans_plot and epoch % 2 == 1:
-                flag_kmeans_plot = True
-            else:
-                flag_kmeans_plot = False
-            if (args.curriculum == 'DBindex_cluster_momentum_kmeans_wholeset' and args.piermaro_restart_epoch + epoch >= args.start_dbindex_loss_epoch):
-                kmeans_batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=False, drop_last=False)
-                kmeans_labels_list = []
-                cluster_centers_list = []
-                kmeans_feature = []
-                GT_label = [] #  important: GT_label is not used for the second epoch or later. So when changing the targets of dataset in epoch 1, it will not influence GT_label.
-                net.train()
-                if args.kmeans_just_plot:
-                    # input('restore')
-                    net.restore_k_with_q()
-                    # net.compare_k_with_q()
-                for i, kmeans_batch_idx in enumerate(kmeans_batch_idx_list):
-                    print(i)
-                    if i >= 5:
-                        break
-                    pos_1, target = data_loader.get_batch(kmeans_batch_idx)
-                    pos_1, target = pos_1.cuda(), target.cuda()
-                    feature, out = net.momentum_encoder(pos_1)
-                    kmeans_feature.append(feature)
-                    GT_label.append(target.detach().cpu().numpy())
-                
-                if args.kmeans_just_plot_test:
-                    kmeans_batch_idx_list = get_batch_idx_group(test_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=False, drop_last=False)
-                    net.train()
-                    for i, kmeans_batch_idx in enumerate(kmeans_batch_idx_list):
-                        pos_1, target = test_loader.get_batch(kmeans_batch_idx)
-                        pos_1, target = pos_1.cuda(), target.cuda()
-                        feature, out = net.momentum_encoder(pos_1)
-                        kmeans_feature.append(feature)
-                        GT_label.append(target.detach().cpu().numpy())
-                
-                kmeans_feature = torch.cat(kmeans_feature, dim=0)
-                GT_label = np.concatenate(GT_label, axis=0)
-                for num_cluster_idx in range(len(args.num_clusters)):
-                    kmeans_labels, cluster_centers = kmeans(X=kmeans_feature, num_clusters=args.num_clusters[num_cluster_idx], distance='euclidean', device=pos_1.device, tqdm_flag=False)
-                    kmeans_labels_list.append(kmeans_labels)
-                    cluster_centers_list.append(cluster_centers)
-                if args.kmeans_just_plot:
-                    # input('plot here')
-                    if args.kmeans_just_plot_test:
-                        utils.plot_kmeans_train_test(kmeans_feature, GT_label, save_name_pre, kmeans_labels_list, data_loader.data_source.data.shape[0])
-                    else:
-                        utils.plot_kmeans(kmeans_feature, GT_label, save_name_pre, kmeans_labels_list)
-                    break
-                kmeans_targets = torch.stack(kmeans_labels_list, dim=1)
-                data_loader.data_source.targets = kmeans_targets
-            else:
-                kmeans_labels_list = None
-            if flag_kmeans_plot:
-                # print('check here')
-                # input()
-                kmeans_batch_idx_list = get_batch_idx_group(data_loader.data_source.data.shape[0], batch_size=args.batch_size, shuffle=False, drop_last=False)
-                plot_kmeans_labels_list = []
-                cluster_centers_list = []
-                kmeans_feature = []
-                GT_label = []
-                net.train()
-                for i, kmeans_batch_idx in enumerate(kmeans_batch_idx_list):
-                    pos_1, target = data_loader.get_batch(kmeans_batch_idx)
-                    pos_1, target = pos_1.cuda(), target.cuda()
-                    feature, out = net.momentum_encoder(pos_1)
-                    kmeans_feature.append(feature)
-                    GT_label.append(target.detach().cpu().numpy())
-                kmeans_feature = torch.cat(kmeans_feature, dim=0)
-                # print(kmeans_feature.shape)
-                GT_label = np.concatenate(GT_label, axis=0)
-                for num_cluster_idx in range(len(args.plot_n_cluster)):
-                    kmeans_labels, cluster_centers = kmeans(X=kmeans_feature, num_clusters=args.plot_n_cluster[num_cluster_idx], distance='euclidean', device=pos_1.device, tqdm_flag=False)
-                    plot_kmeans_labels_list.append(kmeans_labels)
-                    cluster_centers_list.append(cluster_centers)
-                    
-                if args.kmeans_plot:
-                    utils.plot_kmeans_epoch(kmeans_feature, GT_label, args.load_model_path, plot_kmeans_labels_list, epoch)
-            
-            net.train()
-            train_bar = tqdm(batch_idx_list)
-            for batch_idx in train_bar:
-                pos_1, target = data_loader.get_batch(batch_idx)
-                if args.piermaro_restart_epoch + epoch >= args.start_dbindex_loss_epoch:
-                    this_loss, this_batch_size = train_batch_kmeans(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss)
-                else:
-                    this_loss, this_batch_size = train_batch(net, pos_1, pos_1, target, train_optimizer, args.ifm_epsilon, 0)
-                if args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
-                    net._momentum_update_key_encoder()
-                total_num += this_batch_size
-                total_loss += this_loss
-                train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
-        else:
-            raise('Please use train_dbindex_loss_pytorch_loader().')
-
-        train_loss =  total_loss / total_num
-
-        results['train_loss'].append(train_loss)
-        test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, epoch, epochs)
-        results['test_acc@1'].append(test_acc_1)
-        results['test_acc@5'].append(test_acc_5)
-        if train_loss < best_train_loss:
-            best_train_loss_acc = test_acc_1
-            best_train_loss = train_loss
-            if not args.no_save:
-                torch.save(net.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
-        if test_acc_1 > best_test_acc:
-            best_test_acc = test_acc_1
-            best_test_acc_loss = train_loss
-            if not args.no_save:
-                torch.save(net.state_dict(), 'results/{}_best_test_acc_model.pth'.format(save_name_pre))
-
-        results['best_test_acc'].append(best_test_acc)
-        results['best_test_acc_loss'].append(best_test_acc_loss)
-        results['best_train_loss'].append(best_train_loss)
-        results['best_train_loss_acc'].append(best_train_loss_acc)
-
-        if not args.no_save:
-            # save statistics
-            data_frame = pd.DataFrame(data=results, index=range(1, args.piermaro_restart_epoch + epoch + 1))
-            data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
-
-    if not args.no_save:
-        torch.save(net.state_dict(), 'results/{}_piermaro_model.pth'.format(save_name_pre))
-        for key in results.keys():
-            length = len(results[key])
-            results[key] = results[key][length-10:length]
-        data_frame = pd.DataFrame(data=results, index=range(args.piermaro_restart_epoch + epochs - 9, args.piermaro_restart_epoch + epochs + 1))
-        data_frame.to_csv('results/{}_statistics_final_10_line.csv'.format(save_name_pre), index_label='epoch')
-        utils.plot_loss('results/{}_statistics'.format(save_name_pre))
 
 def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, train_data, const_train_data):
 
@@ -933,6 +441,7 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
         os.mkdir('results')
     if not args.check_every_step:
         test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, 0, epochs)
+    last_dbindex = 0.0
     for epoch in range(1, epochs + 1):
         # print(test_acc_1, test_acc_5)
         net.train()
@@ -969,60 +478,115 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                 utils.plot_kmeans_epoch(plot_kmeans_feature, plot_GT_label, save_name_pre, plot_kmean_result['im2cluster'], 0, len(plot_kmeans_feature))
                 print(save_name_pre)
                 
-            if (args.curriculum == 'DBindex_cluster_momentum_kmeans_wholeset' and args.piermaro_restart_epoch + epoch >= args.start_dbindex_loss_epoch):
-                kmeans_loader = DataLoader(const_train_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True, drop_last=False)
-                kmeans_labels_list = []
-                cluster_centers_list = []
-                kmeans_feature = []
-                GT_label = []
-                net.train()
-                for pos_1, pos_2, pos_org, target in kmeans_loader:
-                    pos_org, target = pos_org.cuda(), target.cuda()
-                    feature, out = net.momentum_encoder(pos_org)
-                    if args.use_out_kmeans:
-                        kmeans_feature.append(out)
-                    else:
-                        kmeans_feature.append(feature)
-                    GT_label.append(target.detach().cpu().numpy())
-                
-                kmeans_feature = torch.cat(kmeans_feature, dim=0)
-                GT_label = np.concatenate(GT_label, axis=0)
+            if args.curriculum == 'DBindex_cluster_momentum_kmeans_wholeset' and args.piermaro_restart_epoch + epoch >= args.start_dbindex_loss_epoch:
+                if args.piermaro_restart_epoch + epoch == args.start_dbindex_loss_epoch or (args.piermaro_restart_epoch + epoch) % args.reassign_step == 0:
+                    kmeans_loader = DataLoader(const_train_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True, drop_last=False)
+                    kmeans_labels_list = []
+                    cluster_centers_list = []
+                    kmeans_feature = []
+                    GT_label = []
+                    sample_feature = []
+                    net.train()
+                    for pos_1, pos_2, pos_org, target in kmeans_loader:
+                        pos_org, target = pos_org.cuda(), target.cuda()
+                        feature_momentum, out_momentum = net.momentum_encoder(pos_org)
+                        if args.use_out_kmeans:
+                            kmeans_feature.append(out_momentum)
+                        else:
+                            kmeans_feature.append(feature_momentum)
+                        GT_label.append(target.detach().cpu().numpy())
 
-                # for num_cluster_idx in range(len(args.num_clusters)):
-                #     kmeans_labels, cluster_centers = kmeans(X=kmeans_feature, num_clusters=args.num_clusters[num_cluster_idx], distance='euclidean', device=pos_1.device, tqdm_flag=False)
-                #     kmeans_labels_list.append(kmeans_labels)
-                #     cluster_centers_list.append(cluster_centers)
-                kmean_result = run_kmeans(kmeans_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
-                # print(type(kmean_result['centroids'][0]))
-                # print(kmean_result['centroids'][0])
-                # print(kmean_result['centroids'][0].shape, kmean_result['centroids'][1].shape)
-                # input()
-                kmeans_labels_list = kmean_result['im2cluster']
-                kmeans_label_np = torch.stack(kmeans_labels_list, dim=1).detach().cpu().numpy()
-                train_data.targets = kmeans_label_np
+                    with torch.no_grad():
+                        for pos_1, pos_2, pos_org, target in kmeans_loader:
+                            pos_org, target = pos_org.cuda(), target.cuda()
+                            feature, out = net(pos_org)
+                            if args.use_out_kmeans:
+                                sample_feature.append(out)
+                            else:
+                                sample_feature.append(feature)
+                    
+                    kmeans_feature = torch.cat(kmeans_feature, dim=0)
+                    sample_feature = torch.cat(sample_feature, dim=0)
+                    GT_label = np.concatenate(GT_label, axis=0)
 
-                for db_label in kmeans_labels_list:
-                    dbindex = metrics.davies_bouldin_score(kmeans_feature.detach().cpu().numpy(), db_label.detach().cpu().numpy())
+                    torch.cuda.empty_cache()
+
+                    # for num_cluster_idx in range(len(args.num_clusters)):
+                    #     kmeans_labels, cluster_centers = kmeans(X=kmeans_feature, num_clusters=args.num_clusters[num_cluster_idx], distance='euclidean', device=pos_1.device, tqdm_flag=False)
+                    #     kmeans_labels_list.append(kmeans_labels)
+                    #     cluster_centers_list.append(cluster_centers)
+                    kmean_result = run_kmeans(kmeans_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
+                    # sample_feature_kmean_result = run_kmeans(sample_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
+                    # print(type(kmean_result['centroids'][0]))
+                    # print(kmean_result['centroids'][0])
+                    # print(kmean_result['centroids'][0].shape, kmean_result['centroids'][1].shape)
+                    # input()
+                    sample_feature_centroids = utils.get_center(sample_feature.detach().cpu().numpy(), kmean_result, args.num_clusters, args.curriculum)
+                    # temp_sample_feature_centroids = utils.get_center(sample_feature.detach().cpu().numpy(), sample_feature_kmean_result, args.num_clusters,)
+                    # for item in sample_feature_centroids:
+                    #     print(type(sample_feature_centroids))
+                    # input()
+                    # print(temp_sample_feature_centroids[0] - sample_feature_kmean_result['centroids'][0])
+                    # print(torch.mean(temp_sample_feature_centroids[0] - sample_feature_kmean_result['centroids'][0]))
+                    # print(temp_sample_feature_centroids[0])
+                    # print(sample_feature_kmean_result['centroids'][0])
+                    # input()
+                    kmean_result['centroids'] = sample_feature_centroids
+                    
+                    high_conf_label_list = utils.get_reorder_point_2_center_diss(sample_feature.detach().cpu().numpy(), kmean_result, args.num_clusters, args.start_dbindex_loss_epoch, epoch + args.piermaro_restart_epoch, epochs, args.piermaro_whole_epoch, args.final_high_conf_percent)
+                    
+                    kmeans_labels_list = kmean_result['im2cluster'] + high_conf_label_list
+                    kmeans_label_np = torch.stack(kmeans_labels_list, dim=1).detach().cpu().numpy()
+                    train_data.targets = kmeans_label_np
+
+                    for db_label in kmeans_labels_list:
+                        # dbindex = metrics.davies_bouldin_score(sample_feature.detach().cpu().numpy(), db_label.detach().cpu().numpy())
+                        dbindex = utils.get_np_mean_dbindex(sample_feature.detach().cpu().numpy(), db_label.detach().cpu().numpy())
+                        # print(dbindex)
+                    # dbindex = metrics.davies_bouldin_score(sample_feature.detach().cpu().numpy(), GT_label)
+                    dbindex = utils.get_np_mean_dbindex(sample_feature.detach().cpu().numpy(), GT_label)
                     print(dbindex)
-                dbindex = metrics.davies_bouldin_score(kmeans_feature.detach().cpu().numpy(), GT_label)
-                print(dbindex)
-                results['GT_dbindex'].append(dbindex)
-                plot_num = 1024 * 3
+                    results['GT_dbindex'].append(dbindex)
+                    plot_num = 1024 * 3
+                    
+                    if args.kmeans_plot:
+                        break
 
-                # kmean_result['im2cluster']
-                
-                if args.kmeans_plot:
-                    break
-                
-                # input('done here')
-
-                # kmeans_targets = torch.stack(kmeans_labels_list, dim=1)
-                # train_data.targets = kmeans_targets
-
-                del kmeans_feature
-                torch.cuda.empty_cache()
+                    del kmeans_feature
+                    del sample_feature
+                    torch.cuda.empty_cache()
+                else:
+                    results['GT_dbindex'].append(dbindex)
             else:
-                results['GT_dbindex'].append(0)
+                if (args.piermaro_restart_epoch + epoch) % 10 == 1:
+                    kmeans_loader = DataLoader(const_train_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True, drop_last=False)
+                    kmeans_feature = []
+                    GT_label = []
+                    net.eval()
+                    with torch.no_grad():
+                        for pos_1, pos_2, pos_org, target in kmeans_loader:
+                            pos_org, target = pos_org.cuda(), target.cuda()
+                            feature, out = net(pos_org)
+                            if args.use_out_kmeans:
+                                kmeans_feature.append(out)
+                            else:
+                                kmeans_feature.append(feature)
+                            GT_label.append(target.detach().cpu().numpy())
+                    
+                    kmeans_feature = torch.cat(kmeans_feature, dim=0)
+                    GT_label = np.concatenate(GT_label, axis=0)
+
+                    # dbindex = metrics.davies_bouldin_score(kmeans_feature.detach().cpu().numpy(), GT_label)
+                    dbindex = utils.get_np_mean_dbindex(kmeans_feature.detach().cpu().numpy(), GT_label)
+                    print(dbindex)
+                    results['GT_dbindex'].append(dbindex)
+                    last_dbindex = dbindex
+
+                    del kmeans_feature
+                    torch.cuda.empty_cache()
+                else:
+                    results['GT_dbindex'].append(last_dbindex)
+                    # print(results['GT_dbindex'])
                     
             train_bar = tqdm(data_loader)
             for pos_1, pos_2, pos_org, target in train_bar:
@@ -1086,29 +650,30 @@ if __name__ == '__main__':
     batch_size, epochs = args.batch_size, args.epochs
 
     # data prepare
-    if args.kornia_transform:
-        train_data = utils.CIFAR10Triple(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
-        const_train_data = utils.CIFAR10Triple(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
-    else:
-        if args.data_name != 'whole_cifar10' and args.train_mode not in ['normal', 'train_dbindex_loss']:
-            raise("Please use whole_cifar10")
+    if args.data_name != 'whole_cifar10' and args.train_mode not in ['normal', 'train_dbindex_loss']:
+        raise("Please use whole_cifar10")
+    if args.dataset == 'cifar10':
         train_data = utils.CIFAR10Triple(root='data', train=True, transform=utils.train_transform, download=True, data_name=args.data_name)
         const_train_data = utils.CIFAR10Triple(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
+    elif args.dataset == 'cifar100':
+        train_data = utils.CIFAR100Triple(root='data', train=True, transform=utils.train_transform, download=True, data_name=args.data_name)
+        const_train_data = utils.CIFAR100Triple(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
+    else:
+        raise('Wrong dataset!')
     if args.train_mode in ["normal", "train_dbindex_loss"]:
-        if not args.my_train_loader:
-            train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=flag_shuffle_train_data, num_workers=4, pin_memory=True, drop_last=args.train_data_drop_last)
-        else:
-            train_loader = ByIndexDataLoader(train_data)
+        train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=flag_shuffle_train_data, num_workers=4, pin_memory=True, drop_last=args.train_data_drop_last)
     else:
         train_loader = ByIndexDataLoader(train_data)
-    memory_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
-    test_data = utils.CIFAR10Pair(root='data', train=False, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
-    if not args.my_test_loader:
-        memory_loader = DataLoader(memory_data, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
-        test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    if args.dataset == 'cifar10':
+        memory_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
+        test_data = utils.CIFAR10Pair(root='data', train=False, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
+    elif args.dataset == 'cifar100':
+        memory_data = utils.CIFAR100Pair(root='data', train=True, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
+        test_data = utils.CIFAR100Pair(root='data', train=False, transform=utils.ToTensor_transform, download=True, data_name=args.data_name)
     else:
-        memory_loader = ByIndexDataLoader(memory_data)
-        test_loader = ByIndexDataLoader(test_data)
+        raise('Wrong dataset!')
+    memory_loader = DataLoader(memory_data, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
 
     # model setup and optimizer config
     if args.curriculum not in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2', 'DBindex_cluster_momentum_kmeans_repeat_v2_mean_dbindex', 'DBindex_cluster_momentum_kmeans_repeat_v2_weighted_cluster']:
@@ -1195,23 +760,8 @@ if __name__ == '__main__':
     if args.train_mode == "normal":
         train(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre)
 
-    elif args.train_mode == "inst_suppress":
-        train_inst_suppress(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model)
-
-    elif args.train_mode == "curriculum":
-        curriculum(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model)
-
     elif args.train_mode == "just_plot":
         just_plot(model, None, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre)
 
-    elif args.train_mode == "auto_aug":
-        auto_aug(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model)
-
-    elif args.train_mode == "adversarial_training":
-        adversarial_training(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, pretrain_model)
-
     elif args.train_mode == "train_dbindex_loss":
-        if args.my_train_loader:
-            train_dbindex_loss(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre)
-        else:
-            train_dbindex_loss_pytorch_loader(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, train_data, const_train_data)
+        train_dbindex_loss_pytorch_loader(model, train_loader, optimizer, memory_loader, test_loader, temperature, k, batch_size, epochs, save_name_pre, train_data, const_train_data)

@@ -11,8 +11,16 @@
 # normal_49260763_1_20220322155227_0.5_200_512_200_model
 # /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/results/train_dbindex_loss_49379895_1_20220323133205_0.5_200_512_300_statistics.png
 # normal_49381451_1_20220323135023_0.5_200_512_300_model
+# /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/results/normal_49435444_1_20220323183157_0.5_200_512_800_statistics.png
+# /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/results/train_dbindex_loss_49436023_1_20220323183359_0.5_200_512_400_statistics.png
+# normal_48899799_1_20220319160643_0.5_200_512_1000 /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/results/normal_49435445_1_20220323183157_0.5_200_512_800_statistics.png
+# train_dbindex_loss_49842318_1_20220327161706_0.5_200_512_400_statistics
+# train_dbindex_loss_49842319_1_20220327161706_0.5_200_512_400_statistics
+# /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/results/train_dbindex_loss_50252176_1_20220330120120_0.5_200_512_200_statistics.png
+# /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/results/normal_50250369_1_20220330113352_0.5_200_512_200_statistics.png
+# /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/results/normal_50250391_1_20220330113352_0.5_200_512_200_statistics.png
 
-MY_CMD="python plot_loss.py --model_path1 normal_49381451_1_20220323135023_0.5_200_512_300_model --model_path1_base normal_48899799_1_20220319160643_0.5_200_512_1000_model"
+MY_CMD="python plot_loss.py --model_path1 train_dbindex_loss_49435448_1_20220323183157_0.5_200_512_800_model --model_path2 normal_49435447_1_20220323183157_0.5_200_512_800_model"
 
 echo $MY_CMD
 echo ${MY_CMD}>>local_history.log

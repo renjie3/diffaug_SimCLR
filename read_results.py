@@ -2,6 +2,14 @@ import pandas as pd
 import os
 import numpy as np
 
+import argparse
+
+parser = argparse.ArgumentParser(description='Train SimCLR')
+parser.add_argument('--max_epoch', default=2000, type=int, help='Use pretrained model to get DBindex')
+
+# args parse
+args = parser.parse_args()
+
 f = open('./tobe_read.txt', 'r')
 job_ids = f.readlines()
 f.close()
@@ -24,7 +32,7 @@ model2_list = []
 std_list = []
 
 csv_name = "_statistics_final_10_line.csv"
-csv_name = "_statistics.csv"
+# csv_name = "_statistics.csv"
 
 for job_id in job_ids:
     sub_job1 = job_id.strip() + '_1'
@@ -39,6 +47,7 @@ for job_id in job_ids:
             for key in results['best_test_acc']:
                 if max_key < key:
                     max_key = key
+            max_key = min(max_key, args.max_epoch)
             job1_test_acc_results.append(results['best_test_acc'][max_key])
             job1_train_loss_acc_results.append(results['best_train_loss_acc'][max_key])
         
@@ -49,6 +58,7 @@ for job_id in job_ids:
             for key in results['best_test_acc']:
                 if max_key < key:
                     max_key = key
+            max_key = min(max_key, args.max_epoch)
             job2_test_acc_results.append(results['best_test_acc'][max_key])
             job2_train_loss_acc_results.append(results['best_train_loss_acc'][max_key])
 

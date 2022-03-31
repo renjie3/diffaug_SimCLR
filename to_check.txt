@@ -15,3 +15,45 @@
 python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_48899799_1_20220319160643_0.5_200_512_1000_model --kornia_transform --train_data_drop_last --weight_dbindex_loss 0.2 --start_dbindex_loss_epoch 1 --restore_k_when_start --num_clusters 1000 1500 --repeat_num 1 --use_out_dbindex --use_wholeset_centroid --local 2 --no_save
 
 20220322211344 base 200 进行训练
+
+---------------------------------------------------------------
+Wed Mar 30 11:40:13 EDT 2022
+50250856
+cifar10 baseline
+python main4.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 800 --arch resnet18 --dataset cifar10 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_piermaro_model --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 10 100 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --reassign_step 1 --flag_select_confidence --final_high_conf_percent 0.1 --keep_gradient_on_center --inter_class_type wholeset --dbindex_type half
+---------------------------------------------------------------
+Wed Mar 30 11:40:16 EDT 2022
+50250861
+cifar10 baseline
+python main4.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 800 --arch resnet18 --dataset cifar10 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_piermaro_model --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 10 100 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --reassign_step 1 --flag_select_confidence --final_high_conf_percent 0.1 --keep_gradient_on_center --inter_class_type wholeset --dbindex_type half
+---------------------------------------------------------------
+Wed Mar 30 11:40:19 EDT 2022
+50250862
+cifar10 baseline
+python main4.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 800 --arch resnet18 --dataset cifar10 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_piermaro_model --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 10 100 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --reassign_step 1 --flag_select_confidence --final_high_conf_percent 0.1 --keep_gradient_on_center --inter_class_type wholeset --dbindex_type half
+---------------------------------------------------------------
+Wed Mar 30 11:40:22 EDT 2022
+50250871
+cifar10 baseline
+python main4.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 800 --arch resnet18 --dataset cifar10 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_piermaro_model --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 10 100 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --reassign_step 1 --flag_select_confidence --final_high_conf_percent 0.1 --keep_gradient_on_center --inter_class_type wholeset --dbindex_type half
+---------------------------------------------------------------
+Wed Mar 30 11:42:00 EDT 2022
+50250972
+cifar10 baseline
+python main4.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 800 --arch resnet18 --dataset cifar10 --data_name whole_cifar10 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_piermaro_model --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 10 100 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --reassign_step 1 --flag_select_confidence --final_high_conf_percent 0.1 --keep_gradient_on_center --inter_class_type wholeset --dbindex_type half
+---------------------------------------------------------------
+Wed Mar 30 11:42:03 EDT 2022
+50250973
+cifar10 baseline
+python main4.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 800 --arch resnet18 --dataset cifar10 --data_name whole_cifar10 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_piermaro_model --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 10 100 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --reassign_step 1 --flag_select_confidence --final_high_conf_percent 0.1 --keep_gradient_on_center --inter_class_type wholeset --dbindex_type half
+---------------------------------------------------------------
+Wed Mar 30 11:42:06 EDT 2022
+50250982
+cifar10 baseline
+python main4.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 800 --arch resnet18 --dataset cifar10 --data_name whole_cifar10 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_piermaro_model --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 10 100 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --reassign_step 1 --flag_select_confidence --final_high_conf_percent 0.1 --keep_gradient_on_center --inter_class_type wholeset --dbindex_type half
+---------------------------------------------------------------
+Wed Mar 30 11:42:09 EDT 2022
+50250983
+cifar10 baseline
+python main4.py --batch_size 512 --epochs 50 --piermaro_whole_epoch 800 --arch resnet18 --dataset cifar10 --data_name whole_cifar10 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_piermaro_model --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 10 100 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --reassign_step 1 --flag_select_confidence --final_high_conf_percent 0.1 --keep_gradient_on_center --inter_class_type wholeset --dbindex_type half
+---------------------------------------------------------------

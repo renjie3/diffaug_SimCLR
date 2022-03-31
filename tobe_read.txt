@@ -1,10 +1,7 @@
 ---------------------------------------------------------------
-Tue Mar 22 15:51:45 EDT 2022
-49260763
+Wed Mar 30 20:10:39 EDT 2022
+50283008
 cifar10 baseline
-python main.py --batch_size 512 --epochs 200 --arch resnet18 --data_name whole_cifar10 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --kornia_transform --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1001 --restore_k_when_start --num_clusters 10 15 20 40 --repeat_num 1
+python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth --job_id 50283008_1
+python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth --job_id 50283008_2
 ---------------------------------------------------------------
-Tue Mar 22 15:51:46 EDT 2022
-49260764
-cifar10 baseline
-python main.py --batch_size 512 --epochs 200 --arch resnet18 --data_name whole_cifar10 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --kornia_transform --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1001 --restore_k_when_start --num_clusters 10 15 20 40 --repeat_num 1

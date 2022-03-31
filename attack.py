@@ -320,7 +320,7 @@ class PGD():
         print(metrics.davies_bouldin_score(sample, new_label))
 
 
-def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clusters, repeat_num, use_out_dbindex, use_sim, kmean_result, use_wholeset_centroid, use_mean_dbindex, flag_select_confidence):
+def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clusters, repeat_num, use_out_dbindex, use_sim, kmean_result, use_wholeset_centroid, use_mean_dbindex, flag_select_confidence, confidence_thre):
 
     # repeat_num = 5
     if loss_type in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset']:
@@ -372,9 +372,12 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
         if len(num_clusters) <= 1 and np.sum(num_clusters) == 0:
             num_clusters = [4, 5, 7, 10, 15, 20]
         loss = 0
+        n_clueter_num = len(num_clusters)
         for num_cluster_idx in range(len(num_clusters)):
             kmeans_labels = labels[:, num_cluster_idx]
+            high_conf_label = labels[:, num_cluster_idx + n_clueter_num]
             cluster_label = kmeans_labels.repeat((repeat_num, ))
+            high_conf_label = high_conf_label.repeat((repeat_num, ))
             point_dis_to_center_list = []
             if not use_sim:
                 class_center = []
@@ -383,26 +386,31 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
                 for i in range(c):
                     idx_i = torch.where(cluster_label == i)[0]
                     class_i = sample[idx_i, :]
-                    if not use_wholeset_centroid:
-                        class_i_center = class_i.mean(dim=0)
-                    else:
-                        class_i_center = kmean_result['centroids'][num_cluster_idx][i].detach()
-                        # print(class_i_center.shape)
-                        # input('check here')
+                    class_high_conf_label = high_conf_label[idx_i]
+                    class_i_center = kmean_result['centroids'][num_cluster_idx][i].detach()
                     if idx_i.shape[0] == 0:
                         continue
                     class_center.append(class_i_center)
                     point_dis_to_center = torch.sqrt(torch.sum((class_i-class_i_center)**2, dim = 1))
+                    # TODO: Similar to this
+                    # >>> import torch
+                    # >>> a = torch.tensor([0, 1, 3, 3.5, 4.5, 8])
+                    # >>> b = torch.tensor([0, 1, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0,0,0, ])
+                    # >>> a[b]
                     if flag_select_confidence:
-                        thre = 0.3
-                        point_dis_to_center = point_dis_to_center[point_dis_to_center < thre]
+                        # thre = confidence_thre
+                        # print(class_high_conf_label == 1)
+                        # print((class_high_conf_label == 1).shape)
+                        # print(point_dis_to_center.shape)
+                        # input()
+                        point_dis_to_center = point_dis_to_center[class_high_conf_label == 1]
                         if point_dis_to_center.shape[0] == 0:
                             class_center.pop()
                             continue
                             # input('yes')
                     # print(torch.max(torch.sqrt(torch.sum((class_i-class_i_center)**2, dim = 1))))
                     point_dis_to_center_list.append(point_dis_to_center)
-                    intra_class_dis.append(torch.mean(point_dis_to_center))
+                    intra_class_dis.append(torch.mean(point_dis_to_center)) # TODO: here this should not be mean. I think it should be a classwise coefficient.
                     # intra_class_dis.append(torch.mean(torch.sqrt(torch.sum((class_i-class_i_center)*0, dim = 1))))
                 if len(class_center) <= 1:
                     continue
@@ -411,30 +419,13 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
 
                 c = len(intra_class_dis)
                 
-                class_dis = torch.cdist(class_center, class_center, p=2)
+                class_dis = torch.cdist(class_center, class_center, p=2) # TODO: this can be done for only one time in the whole set
                 # print(class_dis)
-
-                # if flag_select_confidence:
-                #     # class_dis - intra_class_dis
-                #     print(class_dis[0])
-                #     print(- torch.tensor(intra_class_dis).cuda() + class_dis[0])
-                #     intra_class_dis_tensor_row_same = torch.tensor(intra_class_dis).unsqueeze(0).repeat((c, 1)).cuda()
-                #     thre_inter_class = class_dis - intra_class_dis_tensor_row_same
-                #     mask = (torch.ones_like(class_dis) - torch.eye(class_dis.shape[0], device=class_dis.device)).bool()
-                #     thre_inter_class = thre_inter_class.masked_select(mask).view(thre_inter_class.shape[0], -1)
-                #     thre = torch.min(thre_inter_class, dim=1)[0]
-                #     intra_class_dis = []
-                #     for i in range(c):
-                #         class_mask = point_dis_to_center_list[i] < thre[i]
-
-                #     print(thre)
-                #     print(torch.sum(thre < 0))
-                #     print(torch.sum(thre > 0))
-                #     input()
 
                 mask = (torch.ones_like(class_dis) - torch.eye(class_dis.shape[0], device=class_dis.device)).bool()
                 class_dis = class_dis.masked_select(mask).view(class_dis.shape[0], -1)
-
+                # print(class_dis)
+                # input()
 
                 intra_class_dis = torch.tensor(intra_class_dis).unsqueeze(1).repeat((1, c)).cuda()
                 trans_intra_class_dis = torch.transpose(intra_class_dis, 0, 1)

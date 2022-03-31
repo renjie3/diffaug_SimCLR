@@ -1,6 +1,8 @@
 cat piermaro_cmd.sh > 8_piermaro_cmd_code.sh
 
-for((i=0;i<4;i++));
+N_TASK=4
+
+for((i=0;i<${N_TASK};i++));
 do
 sh 8_piermaro_start.sh &
 

@@ -197,3 +197,34 @@ normal_48992808_1_20220320153839_0.5_200_128_1000_model normal_48992809_1_202203
 normal_48992808_2_20220320153839_0.5_200_128_1000_model normal_48992809_2_20220320153839_0.5_200_128_1000_model normal_48992810_2_20220320153846_0.5_200_128_1000_model normal_48992811_2_20220320153845_0.5_200_128_1000_model normal_48992812_2_20220320153846_0.5_200_128_1000_model normal_48992813_2_20220320153845_0.5_200_128_1000_model normal_48992814_2_20220320153845_0.5_200_128_1000_model normal_48992815_2_20220320153845_0.5_200_128_1000_model
 
 200 epoch base 49260763 49260764
+
+
+cifar100
+
+Sat Mar 26 15:51:02 EDT 2022
+49720444
+cifar10 baseline
+python main.py --batch_size 512 --epochs 100 --piermaro_whole_epoch 1000 --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 5 --start_dbindex_loss_epoch 500 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3
+---------------------------------------------------------------
+Sat Mar 26 15:51:05 EDT 2022
+49720445
+cifar10 baseline
+python main.py --batch_size 512 --epochs 100 --piermaro_whole_epoch 1000 --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 5 --start_dbindex_loss_epoch 500 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3
+---------------------------------------------------------------
+Sat Mar 26 15:51:08 EDT 2022
+49720448
+cifar10 baseline
+python main.py --batch_size 512 --epochs 100 --piermaro_whole_epoch 1000 --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 5 --start_dbindex_loss_epoch 500 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3
+---------------------------------------------------------------
+Sat Mar 26 15:51:10 EDT 2022
+49720457
+cifar10 baseline
+python main.py --batch_size 512 --epochs 100 --piermaro_whole_epoch 1000 --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 5 --start_dbindex_loss_epoch 500 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3
+
+
+resnet50 base
+90.03±0.13
+89.64±0.39
+nan±nan
+nan±nan
+normal_50093857_1_20220329102801_0.5_200_512_1000_model normal_50093858_1_20220329102801_0.5_200_512_1000_model normal_50093864_1_20220329102801_0.5_200_512_1000_model normal_50093868_1_20220329102801_0.5_200_512_1000_model normal_50093870_1_20220329102753_0.5_200_512_1000_model normal_50093877_1_20220329102753_0.5_200_512_1000_model normal_50093882_1_20220329102753_0.5_200_512_1000_model normal_50093884_1_20220329102753_0.5_200_512_1000_model

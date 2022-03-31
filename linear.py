@@ -10,21 +10,32 @@ from torchvision.datasets import CIFAR10
 from tqdm import tqdm
 
 import utils
-from model import Model
+from model import Model, momentum_Model
 
 
 class Net(nn.Module):
-    def __init__(self, num_class, pretrained_path):
+    def __init__(self, num_class, pretrained_path, arch):
         super(Net, self).__init__()
 
         # encoder
-        self.f = Model().f
+        m_model = momentum_Model(arch=arch)
+        self.model = m_model.model
+        self.key_model = m_model.key_model
         # classifier
-        self.fc = nn.Linear(2048, num_class, bias=True)
-        self.load_state_dict(torch.load(pretrained_path, map_location='cpu'), strict=False)
+        if arch == 'resnet18':
+            fc_input_feature_dim = 512
+        elif arch == 'resnet50':
+            fc_input_feature_dim = 2048
+        self.fc = nn.Linear(fc_input_feature_dim, num_class, bias=True)
+        state_dict = torch.load(pretrained_path, map_location='cpu')['state_dict']
+        # model_state_dict = {}
+        # for key in state_dict:
+        #     if 'model' in key and 'key_model' not in key and 'g' not in key:
+        #         model_state_dict[key.replace('model.', '')] = state_dict[key]
+        self.load_state_dict(state_dict, strict=False)
 
     def forward(self, x):
-        x = self.f(x)
+        x = self.model.f(x)
         feature = torch.flatten(x, start_dim=1)
         out = self.fc(feature)
         return out
@@ -66,16 +77,20 @@ if __name__ == '__main__':
                         help='The pretrained model path')
     parser.add_argument('--batch_size', type=int, default=512, help='Number of images in each mini-batch')
     parser.add_argument('--epochs', type=int, default=100, help='Number of sweeps over the dataset to train')
+    parser.add_argument('--arch', type=str, default='resnet18', help='Number of sweeps over the dataset to train')
+    parser.add_argument('--job_id', type=str, default='', help='Number of sweeps over the dataset to train')
 
     args = parser.parse_args()
     model_path, batch_size, epochs = args.model_path, args.batch_size, args.epochs
     train_data = CIFAR10(root='data', train=True, transform=utils.train_transform, download=True)
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=16, pin_memory=True)
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
     test_data = CIFAR10(root='data', train=False, transform=utils.test_transform, download=True)
-    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=16, pin_memory=True)
+    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True)
 
-    model = Net(num_class=len(train_data.classes), pretrained_path=model_path).cuda()
-    for param in model.f.parameters():
+    model = Net(num_class=len(train_data.classes), pretrained_path=model_path, arch=args.arch).cuda()
+    for param in model.model.parameters():
+        param.requires_grad = False
+    for param in model.key_model.parameters():
         param.requires_grad = False
 
     flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32).cuda(),))
@@ -98,7 +113,7 @@ if __name__ == '__main__':
         results['test_acc@5'].append(test_acc_5)
         # save statistics
         data_frame = pd.DataFrame(data=results, index=range(1, epoch + 1))
-        data_frame.to_csv('results/linear_statistics.csv', index_label='epoch')
+        data_frame.to_csv('results/linear_{}_statistics.csv'.format(args.job_id), index_label='epoch')
         if test_acc_1 > best_acc:
             best_acc = test_acc_1
-            torch.save(model.state_dict(), 'results/linear_model.pth')
+            torch.save(model.state_dict(), 'results/linear_{}_model.pth'.format(args.job_id))

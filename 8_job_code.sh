@@ -6,7 +6,7 @@ cd $MY_JOB_ROOT_PATH
 
 MYTIME="3:50:00"
 MYCPU="5"
-MYGPUTYPE="v100s"
+MYGPUTYPE="v100"
 
 JOB_INFO="cifar10 baseline"
 # MYCOMMEND="python main.py --batch_size 512 --epochs 300 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --train_mode inst_suppress --not_shuffle_train_data"
@@ -26,15 +26,15 @@ JOB_INFO="cifar10 baseline"
 # 10 15 20 40
 # python main.py --batch_size 512 --epochs 1500 --arch resnet18 --data_name cifar10_1024_4class --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --my_train_loader --kornia_transform  
 
-MYCOMMEND="python main.py --batch_size 128 --epochs 1000 --arch resnet18 --data_name cifar10_1024_4class --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_repeat_v2 --kornia_transform --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1001 --restore_k_when_start --num_clusters 10 15 20 40 --repeat_num 1"
+MYCOMMEND="python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth"
 
-MYCOMMEND2="python main.py --batch_size 512 --epochs 500 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_48899696_1_20220319160643_0.5_200_512_1000_model --kornia_transform --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 1 --restore_k_when_start --num_clusters 500 --repeat_num 1"
+MYCOMMEND2="python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth"
 
 MYCOMMEND3="python main.py --batch_size 128 --epochs 1000 --arch resnet18 --data_name cifar10_1024_4class --train_mode normal --train_data_drop_last"
 
 # normal_46334423_2_20220301154842_0.5_200_512_best_test_acc_model normal_46334424_2_20220301154842_0.5_200_512_model normal_46334425_2_20220301154959_0.5_200_512_model normal_46334426_2_20220301155011_0.5_200_512_model normal_46334427_2_20220301155120_0.5_200_512_model normal_46334428_2_20220301155152_0.5_200_512_model normal_46334429_2_20220301155216_0.5_200_512_model normal_46334430_2_20220301155216_0.5_200_512_model
 
-MYCOMMEND2="No_commend2"
+# MYCOMMEND2="No_commend2"
 MYCOMMEND3="No_commend3"
 
 cat ./slurm_files/sconfigs1_cmse.sb > submit.sb

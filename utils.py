@@ -1,6 +1,6 @@
 from PIL import Image
 from torchvision import transforms
-from torchvision.datasets import CIFAR10
+from torchvision.datasets import CIFAR10, CIFAR100
 import kornia.augmentation as Kaug
 import torch.nn as nn
 import torch
@@ -117,6 +117,73 @@ class CIFAR10Triple(CIFAR10):
         
         else:
             self.targets = np.array(self.targets)
+
+        # print("class_to_idx", self.class_to_idx)
+
+    def __getitem__(self, index):
+        img, target = self.data[index], self.targets[index]
+        img = Image.fromarray(img)
+
+        if self.transform is not None:
+            pos_1 = self.transform(img)
+            pos_2 = self.transform(img)
+            pos_org = ToTensor_transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return pos_1, pos_2, pos_org, target
+
+
+class CIFAR100Pair(CIFAR100):
+    """CIFAR10 Dataset.
+    """
+
+    def __init__(
+        self,
+        root: str,
+        train: bool = True,
+        transform: Optional[Callable] = None,
+        target_transform: Optional[Callable] = None,
+        download: bool = False,
+        data_name: str = "whole_cifar100"
+    ) -> None:
+
+        super(CIFAR100Pair, self).__init__(root, train=train, transform=transform, target_transform=target_transform, download=download)
+        self.targets = np.array(self.targets)
+
+        # print("class_to_idx", self.class_to_idx)
+
+    def __getitem__(self, index):
+        img, target = self.data[index], self.targets[index]
+        img = Image.fromarray(img)
+
+        if self.transform is not None:
+            pos_1 = self.transform(img)
+            pos_2 = self.transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return pos_1, pos_2, target
+
+
+class CIFAR100Triple(CIFAR100):
+    """CIFAR100 Dataset.
+    """
+
+    def __init__(
+        self,
+        root: str,
+        train: bool = True,
+        transform: Optional[Callable] = None,
+        target_transform: Optional[Callable] = None,
+        download: bool = False,
+        data_name: str = "whole_cifar100"
+    ) -> None:
+
+        super(CIFAR100Triple, self).__init__(root, train=train, transform=transform, target_transform=target_transform, download=download)
+        self.targets = np.array(self.targets)
 
         # print("class_to_idx", self.class_to_idx)
 
@@ -604,7 +671,7 @@ def run_kmeans(x, num_clusters, device, temperature):
         im2cluster = [int(n[0]) for n in I]
         
         # get cluster centroids
-        centroids = faiss.vector_to_array(clus.centroids).reshape(k,d)
+        # centroids = faiss.vector_to_array(clus.centroids).reshape(k,d)
         
         # sample-to-centroid distances for each cluster 
         Dcluster = [[] for c in range(k)]          
@@ -624,18 +691,144 @@ def run_kmeans(x, num_clusters, device, temperature):
         #     if len(dist)<=1:
         #         density[i] = dmax
 
-        density = density.clip(0, np.percentile(density,90)) #clamp extreme values for stability
+        # density = density.clip(0, np.percentile(density,90)) #clamp extreme values for stability
         # density = temperature*density/density.mean()  #scale the mean to temperature 
         
         # convert to cuda Tensors for broadcast
-        centroids = torch.Tensor(centroids).cuda()
-        centroids = nn.functional.normalize(centroids, p=2, dim=1)
+        # centroids = torch.Tensor(centroids).cuda()
+        # centroids = nn.functional.normalize(centroids, p=2, dim=1)
 
         im2cluster = torch.LongTensor(im2cluster).cuda()               
         density = torch.Tensor(density).cuda()
         
-        results['centroids'].append(centroids)
-        results['density'].append(density)
+        # results['centroids'].append(centroids)
+        # results['density'].append(density)
         results['im2cluster'].append(im2cluster)    
         
     return results
+
+def get_np_mean_dbindex(train_data, train_targets):
+    # print(np.max(train_targets))
+    c = np.max(train_targets) + 1
+    class_center = []
+    intra_class_dis = []
+
+    # index_range = range(20,30)
+
+    for i in range(c):
+        idx_i = np.where(train_targets == i)[0]
+        class_i = train_data[idx_i,:]
+        class_i_center = train_data[idx_i].mean(axis=0)[:]
+        class_center.append(class_i_center)
+        intra_class_dis.append(np.mean(np.sqrt(np.sum((class_i-class_i_center)**2, axis=1))))
+
+
+    class_center = np.stack(class_center, axis=0)
+    class_sim = class_center @ class_center.transpose()
+    class_dis = np.zeros(shape=class_sim.shape)
+
+    for i in range(class_center.shape[0]):
+        for j in range(class_center.shape[0]):
+            dis = np.sqrt(np.sum((class_center[i] - class_center[j]) ** 2))
+            class_dis[i,j] = dis
+
+    # print(class_dis)
+
+    DBindex = []
+    for i in range(class_center.shape[0]):
+        index = []
+        for j in range(class_center.shape[0]):
+            if j != i:
+                index.append((intra_class_dis[i] + intra_class_dis[j]) / class_dis[i,j])
+        DBindex.append(np.mean(index))
+
+    # print(DBindex)
+    DBindex = np.mean(DBindex)
+    return DBindex
+
+def get_center(train_data, kmean_result, num_clusters, curriculum):
+    # print(np.max(train_targets))
+    if curriculum == 'DBindex_cluster_GT':
+        train_targets = kmean_result
+        centroids = []
+        c = np.max(train_targets) + 1
+        class_center = []
+
+        for i in range(c):
+            idx_i = np.where(train_targets == i)[0]
+            # class_i = train_data[idx_i,:]
+            class_i_center = train_data[idx_i].mean(axis=0)[:]
+            class_center.append(class_i_center)
+
+        class_center = np.stack(class_center, axis=0)
+        class_center = torch.tensor(class_center).cuda()
+        class_center = nn.functional.normalize(class_center, p=2, dim=1)
+        centroids.append(class_center)
+    else:
+        centroids = []
+        for num_cluster_idx in range(len(num_clusters)):
+            train_targets = kmean_result['im2cluster'][num_cluster_idx].detach().cpu().numpy()
+
+            c = np.max(train_targets) + 1
+            class_center = []
+
+            for i in range(c):
+                idx_i = np.where(train_targets == i)[0]
+                # class_i = train_data[idx_i,:]
+                class_i_center = train_data[idx_i].mean(axis=0)[:]
+                class_center.append(class_i_center)
+
+            class_center = np.stack(class_center, axis=0)
+            centroids.append(torch.tensor(class_center).cuda())
+
+    return centroids
+
+def get_reorder_point_2_center_diss(sample, kmean_result, num_clusters, start_epoch, epoch, epochs, piermaro_whole_epoch, final_percent):
+    
+    if piermaro_whole_epoch == '':
+        whole_epoch = epochs
+    else:
+        whole_epoch = int(piermaro_whole_epoch)
+    if final_percent == 0.5:
+        percent_high_conf = 0.5 * float(epoch - start_epoch) / float(whole_epoch - start_epoch)
+        # input('check')
+    else:
+        percent_high_conf = final_percent
+    high_conf_label_list = []
+    for num_cluster_idx in range(len(num_clusters)):
+        cluster_label = kmean_result['im2cluster'][num_cluster_idx]
+        cluster_label = cluster_label.detach().cpu().numpy()
+        high_conf_label = np.zeros(cluster_label.shape)
+        class_center = []
+        intra_class_dis = []
+        point_dis_to_center_list = []
+        c = np.max(cluster_label) + 1
+        for i in range(c):
+            idx_i_wholeset = np.where(cluster_label == i)[0]
+            class_i = sample[idx_i_wholeset, :]
+            class_i_center = kmean_result['centroids'][num_cluster_idx][i].detach().cpu().numpy()
+            if idx_i_wholeset.shape[0] == 0:
+                continue
+            class_center.append(class_i_center)
+            point_dis_to_center = np.sqrt(np.sum((class_i-class_i_center)**2, axis = 1))
+            if point_dis_to_center.shape[0] == 0:
+                class_center.pop()
+                continue
+
+            num_high_conf = int(percent_high_conf * point_dis_to_center.shape[0])
+            
+            idx_high_conf_class = np.argpartition(point_dis_to_center, num_high_conf)[:num_high_conf]
+            idx_low_conf_class = np.argpartition(point_dis_to_center, num_high_conf)[num_high_conf:]
+            # print(idx_high_conf_class.shape)
+            # print(point_dis_to_center.shape)
+            # print(point_dis_to_center[idx_low_conf_class].mean())
+            # print(point_dis_to_center[idx_high_conf_class].mean())
+            # print(np.min(point_dis_to_center[idx_low_conf_class]))
+            # print(np.max(point_dis_to_center[idx_high_conf_class]))
+            # input()
+            idx_high_conf_class_of_wholeset = idx_i_wholeset[idx_high_conf_class]
+            high_conf_label[idx_high_conf_class_of_wholeset] = 1
+        
+        high_conf_label_list.append(torch.LongTensor(high_conf_label).cuda())
+
+    return high_conf_label_list

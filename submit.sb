@@ -6,11 +6,11 @@
 #SBATCH --ntasks=1                  # number of tasks - how many tasks (nodes) that you require (same as -n)
 #SBATCH --mem-per-cpu=8G            # memory required per allocated CPU (or core) - amount of memory (in bytes)
 #SBATCH --job-name SimCLR      # you can give your job a name for easier identification (same as -J)
-#SBATCH --gres=gpu:v100:1
-#SBATCH --time=30:50:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --gres=gpu:v100s:1
+#SBATCH --time=3:50:00             # limit of wall clock time - how long the job will run (same as -t)
 #SBATCH --cpus-per-task=5           # number of CPUs (or cores) per task (same as -c)
-#SBATCH -o /mnt/ufs18/home-145/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/logfile/%j.log
-#SBATCH -e /mnt/ufs18/home-145/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/logfile/%j.err
+#SBATCH -o /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/logfile/%j.log
+#SBATCH -e /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/logfile/%j.err
 
 ########## Command Lines for Job Running ##########
 
@@ -26,8 +26,8 @@ MY_ROOT_PATH="/mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/
 
 cd ${MY_ROOT_PATH}
 JOB_INFO="cifar10 baseline"
-MYCOMMEND="python main.py --batch_size 512 --epochs 800 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_model --kornia_transform --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 1000 1500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --job_id ${SLURM_JOB_ID}_1"
-MYCOMMEND2="No_commend2 --job_id ${SLURM_JOB_ID}_2"
+MYCOMMEND="python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth --job_id ${SLURM_JOB_ID}_1"
+MYCOMMEND2="python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth --job_id ${SLURM_JOB_ID}_2"
 MYCOMMEND3="No_commend3 --job_id ${SLURM_JOB_ID}_3"
 
 #print the information of a job into one file

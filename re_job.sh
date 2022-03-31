@@ -8,7 +8,6 @@ DATE_NAME=$1
 
 MYTIME="3:50:00"
 MYCPU="5"
-MYGPUTYPE="v100s"
 
 JOB_INFO="cifar10 baseline"
 # MYCOMMEND="python main.py --batch_size 512 --epochs 300 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --train_mode inst_suppress --not_shuffle_train_data"

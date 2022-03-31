@@ -13895,3 +13895,239 @@ Wed Mar 23 17:19:20 EDT 2022
 cifar10 baseline
 python main.py --batch_size 512 --epochs 800 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_model --kornia_transform --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --job_id 49312393_1
 ---------------------------------------------------------------
+Wed Mar 23 20:23:28 EDT 2022
+49312459
+cifar10 baseline
+python main.py --batch_size 512 --epochs 800 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_model --kornia_transform --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 1000 1500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --job_id 49312459_1
+---------------------------------------------------------------
+Wed Mar 23 20:25:14 EDT 2022
+49312463
+cifar10 baseline
+python main.py --batch_size 512 --epochs 800 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_model --kornia_transform --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 1000 1500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --job_id 49312463_1
+---------------------------------------------------------------
+Wed Mar 23 20:27:34 EDT 2022
+49312454
+cifar10 baseline
+python main.py --batch_size 512 --epochs 800 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_model --kornia_transform --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 1000 1500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --job_id 49312454_1
+---------------------------------------------------------------
+Wed Mar 23 20:37:42 EDT 2022
+49312470
+cifar10 baseline
+python main.py --batch_size 512 --epochs 800 --arch resnet18 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_49260763_1_20220322155227_0.5_200_512_200_model --kornia_transform --train_data_drop_last --weight_dbindex_loss 0.1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 1000 1500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --job_id 49312470_1
+---------------------------------------------------------------
+Wed Mar 23 21:19:54 EDT 2022
+49449721
+cifar10 baseline
+python main.py --batch_size 512 --epochs 200 --arch resnet18 --data_name whole_cifar10 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 30 --restore_k_when_start --num_clusters 10 30 100 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --job_id 49449721_1
+---------------------------------------------------------------
+Wed Mar 23 21:24:53 EDT 2022
+49449742
+cifar10 baseline
+python main.py --batch_size 512 --epochs 200 --arch resnet18 --data_name whole_cifar10 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 30 --restore_k_when_start --num_clusters 10 30 100 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --job_id 49449742_1
+---------------------------------------------------------------
+Sun Mar 27 18:14:09 EDT 2022
+49721614
+cifar10 baseline
+python main.py --batch_size 512 --epochs 1000 --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 510 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3 --job_id 49721614_1
+python main.py --batch_size 512 --epochs 1000 --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 510 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3 --job_id 49721614_2
+---------------------------------------------------------------
+Sun Mar 27 18:56:40 EDT 2022
+49721616
+cifar10 baseline
+python main.py --batch_size 512 --epochs 1000 --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 510 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3 --job_id 49721616_1
+python main.py --batch_size 512 --epochs 1000 --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 510 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3 --job_id 49721616_2
+---------------------------------------------------------------
+Sun Mar 27 19:30:05 EDT 2022
+49721615
+cifar10 baseline
+python main.py --batch_size 512 --epochs 1000 --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 510 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3 --job_id 49721615_1
+python main.py --batch_size 512 --epochs 1000 --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 510 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3 --job_id 49721615_2
+---------------------------------------------------------------
+Sun Mar 27 19:54:47 EDT 2022
+49721617
+cifar10 baseline
+python main.py --batch_size 512 --epochs 1000 --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 510 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3 --job_id 49721617_1
+python main.py --batch_size 512 --epochs 1000 --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 510 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3 --job_id 49721617_2
+---------------------------------------------------------------
+Sun Mar 27 22:03:01 EDT 2022
+Sun Mar 27 22:03:01 EDT 2022
+Sun Mar 27 22:03:01 EDT 2022
+49883908
+49883919
+cifar10 baseline
+49883914
+cifar10 baseline
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883919_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883908_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883914_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883919_2
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883908_2
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883914_2
+---------------------------------------------------------------
+---------------------------------------------------------------
+---------------------------------------------------------------
+Sun Mar 27 22:03:01 EDT 2022
+49883923
+cifar10 baseline
+Sun Mar 27 22:03:01 EDT 2022
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883923_1
+49883916
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883923_2
+cifar10 baseline
+---------------------------------------------------------------
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883916_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883916_2
+---------------------------------------------------------------
+Sun Mar 27 22:03:01 EDT 2022
+49883911
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883911_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883911_2
+---------------------------------------------------------------
+Sun Mar 27 22:03:21 EDT 2022
+49883927
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883927_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883927_2
+---------------------------------------------------------------
+Sun Mar 27 22:03:21 EDT 2022
+49883925
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883925_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49883925_2
+---------------------------------------------------------------
+Sun Mar 27 22:45:50 EDT 2022
+49885079
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885079_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885079_2
+---------------------------------------------------------------
+Sun Mar 27 22:45:57 EDT 2022
+49885080
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885080_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885080_2
+---------------------------------------------------------------
+Sun Mar 27 22:53:08 EDT 2022
+49885077
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885077_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885077_2
+---------------------------------------------------------------
+Sun Mar 27 22:53:10 EDT 2022
+49885076
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885076_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885076_2
+---------------------------------------------------------------
+Sun Mar 27 22:55:40 EDT 2022
+49885078
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885078_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885078_2
+---------------------------------------------------------------
+Sun Mar 27 22:55:41 EDT 2022
+49885073
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885073_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885073_2
+---------------------------------------------------------------
+Sun Mar 27 22:56:12 EDT 2022
+49885075
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885075_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885075_2
+---------------------------------------------------------------
+Sun Mar 27 22:56:52 EDT 2022
+49885074
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885074_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49885074_2
+---------------------------------------------------------------
+Sun Mar 27 23:55:38 EDT 2022
+49894771
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894771_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894771_2
+---------------------------------------------------------------
+Sun Mar 27 23:56:28 EDT 2022
+49894770
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894770_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894770_2
+---------------------------------------------------------------
+Sun Mar 27 23:59:28 EDT 2022
+49894767
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894767_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894767_2
+---------------------------------------------------------------
+Sun Mar 27 23:59:52 EDT 2022
+49894764
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894764_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894764_2
+---------------------------------------------------------------
+Sun Mar 27 23:59:53 EDT 2022
+49894768
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894768_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894768_2
+---------------------------------------------------------------
+Mon Mar 28 00:00:04 EDT 2022
+49894766
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894766_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894766_2
+---------------------------------------------------------------
+Mon Mar 28 00:00:08 EDT 2022
+49894769
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894769_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894769_2
+---------------------------------------------------------------
+Mon Mar 28 00:01:10 EDT 2022
+49894765
+cifar10 baseline
+python linear.py --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_49854464_1_20220327175342_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894765_1
+python linear.py --batch_size 512 --epochs 100 --model_path results/normal_49868495_1_20220327195531_0.5_200_512_400_piermaro_model_save1.pth --job_id 49894765_2
+---------------------------------------------------------------
+Tue Mar 29 17:49:18 EDT 2022
+50121454
+cifar10 baseline
+python main2.py --batch_size 512 --epochs 100 --arch resnet18 --dataset cifar10 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_48899799_1_20220319160643_0.5_200_512_1000_model --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 1 --restore_k_when_start --num_clusters 10 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --reassign_step 1 --final_high_conf_percent 0.3 --keep_gradient_on_center --job_id 50121454_1
+---------------------------------------------------------------
+Tue Mar 29 17:49:45 EDT 2022
+50121459
+cifar10 baseline
+python main2.py --batch_size 512 --epochs 100 --arch resnet18 --dataset cifar10 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_48899799_1_20220319160643_0.5_200_512_1000_model --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 1 --restore_k_when_start --num_clusters 10 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --reassign_step 1 --final_high_conf_percent 0.3 --keep_gradient_on_center --job_id 50121459_1
+---------------------------------------------------------------
+Wed Mar 30 11:58:36 EDT 2022
+50248829
+cifar10 baseline
+python linear.py --arch resnet50 --batch_size 512 --epochs 100 --model_path results/normal_50093884_1_20220329102753_0.5_200_512_1000_model.pth --job_id 50248829_1
+---------------------------------------------------------------
+Wed Mar 30 11:59:18 EDT 2022
+50248827
+cifar10 baseline
+python linear.py --arch resnet50 --batch_size 512 --epochs 100 --model_path results/normal_50093884_1_20220329102753_0.5_200_512_1000_model.pth --job_id 50248827_1
+---------------------------------------------------------------
+Wed Mar 30 20:00:01 EDT 2022
+50282265
+cifar10 baseline
+python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_50273433_1_20220330165612_0.5_200_512_200_best_test_acc_model.pth --job_id 50282265_1
+python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_model.pth --job_id 50282265_2
+---------------------------------------------------------------
+Wed Mar 30 20:00:54 EDT 2022
+50282261
+cifar10 baseline
+python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/train_dbindex_loss_50273433_1_20220330165612_0.5_200_512_200_best_test_acc_model.pth --job_id 50282261_1
+python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_model.pth --job_id 50282261_2
+---------------------------------------------------------------
+Wed Mar 30 20:10:39 EDT 2022
+50283008
+cifar10 baseline
+python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth --job_id 50283008_1
+python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth --job_id 50283008_2
+---------------------------------------------------------------
