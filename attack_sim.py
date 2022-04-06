@@ -384,6 +384,7 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
                 class_center_batch = []
                 intra_class_sim = []
                 c = torch.max(cluster_label) + 1
+                center_new_batch = torch.zeros(kmean_result['centroids'][num_cluster_idx].shape).cuda()
                 for i in range(c):
                     idx_i = torch.where(cluster_label == i)[0]
                     # class_i = sample[idx_i, :]
@@ -396,28 +397,29 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
                     # class_center_batch.append(class_i.mean(dim=0))
                     # class_i_center_batch = class_i.mean(dim=0)
 
-                    # class_i_center_batch = nn.functional.normalize(class_i.mean(dim=0), p=2, dim=0)
-                    class_i_center_batch = kmean_result['centroids'][num_cluster_idx][i].detach()
+                    class_i_center_batch = nn.functional.normalize(class_i.mean(dim=0), p=2, dim=0)
+                    # class_i_center_batch = kmean_result['centroids'][num_cluster_idx][i].detach()
                     class_center_batch.append(class_i_center_batch)
+                    center_new_batch[i] = class_i_center_batch
 
-                    intra_sim_c = torch.exp(torch.mm(class_i, class_i_center_batch.unsqueeze(1).double()) / temperature).squeeze(1)
+                    # intra_sim_c = torch.exp(torch.mm(class_i, class_i_center_batch.unsqueeze(1).double()) / temperature).squeeze(1)
 
                     # print(intra_sim_c.shape)
                     # input()
 
                     # point_dis_to_center_list.append(point_dis_to_center)
-                    intra_class_sim.append(torch.sum(intra_sim_c)) # TODO: here this should not be mean. I think it should be a classwise coefficient.
+                    # intra_class_sim.append(torch.sum(intra_sim_c)) # TODO: here this should not be mean. I think it should be a classwise coefficient.
                     # intra_class_dis.append(torch.mean(torch.sqrt(torch.sum((class_i-class_i_center)*0, dim = 1))))
                 if len(class_center_batch) <= 1:
                     continue
                 class_center_batch = torch.stack(class_center_batch, dim=0)
-                class_center_wholeset = torch.stack(class_center_wholeset, dim=1)
-                intra_class_sim = torch.stack(intra_class_sim, dim=0)
+                class_center_wholeset = kmean_result['centroids'][num_cluster_idx].t()
+                # intra_class_sim = torch.stack(intra_class_sim, dim=0)
 
                 # print(class_center_wholeset.shape)
                 
                 # temp = torch.mm(class_center_batch, class_center_wholeset)
-                inter_class_sim_matrix = torch.exp(torch.mm(class_center_wholeset.double().t(), class_center_wholeset.double()) / temperature) # TODO: this can be done for only one time in the whole 
+                inter_class_sim_matrix = torch.exp(torch.mm(center_new_batch.double(), class_center_wholeset.double()) / temperature) # TODO: this can be done for only one time in the whole 
 
                 mask = (torch.ones_like(inter_class_sim_matrix) - torch.eye(inter_class_sim_matrix.shape[0], device=inter_class_sim_matrix.device)).bool()
                 inter_class_sim_matrix = inter_class_sim_matrix.masked_select(mask).view(inter_class_sim_matrix.shape[0], -1)
@@ -426,7 +428,7 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
 
                 # print(inter_class_sim.shape)
                 
-                dbindex_sim_loss = (- torch.log(intra_class_sim / inter_class_sim)).mean()
+                dbindex_sim_loss = (- torch.log(1 / inter_class_sim)).mean()
 
                 loss += dbindex_sim_loss
             else:

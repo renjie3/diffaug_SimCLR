@@ -6,7 +6,7 @@ cd $MY_JOB_ROOT_PATH
 
 MYTIME="3:50:00"
 MYCPU="5"
-MYGPUTYPE="v100s"
+MYGPUTYPE="v100"
 
 JOB_INFO="cifar10 baseline"
 # MYCOMMEND="python main.py --batch_size 512 --epochs 300 --arch resnet18 --data_name cifar10_20000_4class --train_data_drop_last --train_mode inst_suppress --not_shuffle_train_data"
@@ -37,8 +37,8 @@ MYCOMMEND3="python main.py --batch_size 128 --epochs 1000 --arch resnet18 --data
 # MYCOMMEND2="No_commend2"
 MYCOMMEND3="No_commend3"
 
-cat ./slurm_files/sconfigs1_cmse.sb > submit.sb
-# cat ./slurm_files/sconfigs1.sb > submit.sb
+# cat ./slurm_files/sconfigs1_cmse.sb > submit.sb
+cat ./slurm_files/sconfigs1.sb > submit.sb
 echo "#SBATCH --gres=gpu:${MYGPUTYPE}:1"  >> submit.sb
 echo "#SBATCH --time=${MYTIME}             # limit of wall clock time - how long the job will run (same as -t)" >> submit.sb
 echo "#SBATCH --cpus-per-task=${MYCPU}           # number of CPUs (or cores) per task (same as -c)" >> submit.sb

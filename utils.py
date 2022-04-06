@@ -422,6 +422,101 @@ def plot_kmeans(feature_bank, GT_label, save_name_pre, kmeans_labels_list):
             plt.savefig('./plot_kmeans/{}/{}_{}.png'.format(save_name_pre, c, save_name_pre))
         plt.close()
 
+
+def plot_high_conf(feature_bank, kmeans_labels_np, num_clusters, save_name_pre, GT_label):
+
+    plot_num = 2048
+
+    tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
+
+    # for i, n_cluster in enumerate(num_clusters):
+    #     kmeans_labels, cluster_centers = kmeans(X=feature_bank, num_clusters=n_cluster, distance='euclidean', device=feature_bank.device, tqdm_flag=False)
+    #     kmeans_labels_list.append(kmeans_labels.detach().cpu().numpy())
+
+    feature_tsne_input = feature_bank[:plot_num]
+    label = GT_label[:plot_num]
+    
+    plot_labels_colar = label
+
+    feature_tsne_output = tsne.fit_transform(feature_tsne_input)
+    c = np.max(plot_labels_colar) + 1
+    
+    coord_min = math.floor(np.min(feature_tsne_output) / 1) * 1
+    coord_max = math.ceil(np.max(feature_tsne_output) / 1) * 1
+
+    cm = plt.cm.get_cmap('gist_rainbow')
+    z = np.arange(c)
+    my_cmap = cm(z)
+    my_cmap = ListedColormap(my_cmap)
+
+    marker = ['o', 'x', 'v', 'd']
+    color_map = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w', 'chartreuse', 'cyan', 'sage', 'coral', 'gold', 'plum', 'sienna', 'teal']
+
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.add_subplot(1, 1, 1)
+    plt.title("\n max:{} min:{}".format(coord_max, coord_min))
+
+    x_pos_1 = feature_tsne_output[:, 0]
+    y_pos_1 = feature_tsne_output[:, 1]
+    # plot_labels_colar = labels.detach().cpu().numpy()
+
+    # linewidths
+
+    aug1 = plt.scatter(x_pos_1, y_pos_1, s=15, marker='o', c=plot_labels_colar, cmap=cm)
+
+    plt.xlim((coord_min, coord_max))
+    plt.ylim((coord_min, coord_max))
+    if not os.path.exists('./plot_kmeans/{}'.format(save_name_pre)):
+        os.mkdir('./plot_kmeans/{}'.format(save_name_pre))
+    plt.savefig('./plot_kmeans/{}/{}_{}.png'.format(save_name_pre, 'GT', save_name_pre))
+    plt.close()
+
+    n_cluster = len(num_clusters)
+    
+    for i in range(n_cluster):
+        
+        feature_tsne_input = feature_bank[:plot_num]
+        label = kmeans_labels_np[:plot_num, i]
+        high_conf_label = kmeans_labels_np[:plot_num, i + n_cluster]
+
+        high_conf_idx = np.where(high_conf_label == 1)[0]
+        
+        plot_labels_colar = label
+
+        feature_tsne_output = tsne.fit_transform(feature_tsne_input)
+        c = np.max(plot_labels_colar) + 1
+        
+        coord_min = math.floor(np.min(feature_tsne_output) / 1) * 1
+        coord_max = math.ceil(np.max(feature_tsne_output) / 1) * 1
+
+        cm = plt.cm.get_cmap('gist_rainbow')
+        z = np.arange(c)
+        my_cmap = cm(z)
+        my_cmap = ListedColormap(my_cmap)
+
+        marker = ['o', 'x', 'v', 'd']
+        color_map = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w', 'chartreuse', 'cyan', 'sage', 'coral', 'gold', 'plum', 'sienna', 'teal']
+
+        fig = plt.figure(figsize=(8, 8))
+        ax = fig.add_subplot(1, 1, 1)
+        plt.title("\n max:{} min:{}".format(coord_max, coord_min))
+
+        x_pos_1 = feature_tsne_output[:, 0]
+        y_pos_1 = feature_tsne_output[:, 1]
+        # plot_labels_colar = labels.detach().cpu().numpy()
+
+        # linewidths
+
+        aug1 = plt.scatter(x_pos_1, y_pos_1, s=15, marker='o', c=plot_labels_colar, cmap=cm)
+        aug1 = plt.scatter(x_pos_1[high_conf_idx], y_pos_1[high_conf_idx], s=15, marker='o', c=plot_labels_colar[high_conf_idx], cmap=cm, edgecolors='k')
+
+        plt.xlim((coord_min, coord_max))
+        plt.ylim((coord_min, coord_max))
+        if not os.path.exists('./plot_kmeans/{}'.format(save_name_pre)):
+            os.mkdir('./plot_kmeans/{}'.format(save_name_pre))
+        plt.savefig('./plot_kmeans/{}/{}_{}.png'.format(save_name_pre, c, save_name_pre))
+        plt.close()
+
 def plot_kmeans_train_test(feature_bank, GT_label, save_name_pre, kmeans_labels_list, n_train):
 
     tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
@@ -744,7 +839,7 @@ def get_np_mean_dbindex(train_data, train_targets):
 
     # print(DBindex)
     DBindex = np.mean(DBindex)
-    return DBindex
+    return DBindex, np.mean(intra_class_dis), np.mean(class_dis)
 
 def get_center(train_data, kmean_result, num_clusters, curriculum):
     # print(np.max(train_targets))

@@ -17413,3 +17413,9 @@ cifar10 baseline
 python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth
 python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth
 ---------------------------------------------------------------
+Mon Apr  4 22:52:01 EDT 2022
+50780042
+cifar10 baseline
+python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth
+python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth
+---------------------------------------------------------------

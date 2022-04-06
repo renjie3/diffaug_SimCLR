@@ -74,6 +74,8 @@ parser.add_argument('--dataset', default='cifar10', type=str, help='what dataset
 parser.add_argument('--final_high_conf_percent', default=0.5, type=float, help='gap of reassign labels')
 parser.add_argument('--use_GT', action='store_true', default=False)
 parser.add_argument('--keep_gradient_on_center', action='store_true', default=False)
+parser.add_argument('--inter_class_type', default='wholeset', type=str, help='what dataset to use')
+parser.add_argument('--dbindex_type', default='half', type=str, help='what dataset to use')
 
 parser.add_argument('--attack_steps', default=10, type=int, help='perturb number of steps')
 
@@ -102,14 +104,14 @@ from tqdm import tqdm
 import numpy as np
 from sklearn import metrics
 
-import utils2 as utils
+import utils
 from model import Model, momentum_Model
-from utils2 import train_diff_transform, train_diff_transform_prob, run_kmeans
+from utils import train_diff_transform, train_diff_transform_prob, run_kmeans
 
 from inst_suppress_utils import *
 from auto_aug_utils import *
 
-from attack2 import PGD, get_dbindex_loss
+from attack import PGD, get_dbindex_loss
 from kmeans_pytorch import kmeans
 
 import datetime
@@ -204,20 +206,22 @@ def train_batch_kmeans(net, pos_1, pos_2, pos_org, target, train_optimizer, ifm_
     if not args.use_org_sample_dbindex:
         if weight_dbindex_loss != 0:
             # get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform)
-            dbindex_loss_pos_1 = get_dbindex_loss(net, pos_1.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, args.use_out_dbindex, args.use_sim, kmean_result, args.use_wholeset_centroid, args.use_mean_dbindex)
-            dbindex_loss_pos_2 = get_dbindex_loss(net, pos_2.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, args.use_out_dbindex, args.use_sim, kmean_result, args.use_wholeset_centroid, args.use_mean_dbindex)
-            dbindex_loss = (dbindex_loss_pos_1 + dbindex_loss_pos_2) / 2
+            dbindex_loss = get_dbindex_loss(net, pos_2.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, args.use_out_dbindex, args.use_sim, kmean_result, args.use_wholeset_centroid, args.use_mean_dbindex, args.flag_select_confidence, args.confidence_thre, args.keep_gradient_on_center, args.inter_class_type, args.dbindex_type)
         else:
             dbindex_loss = 0
+        feature_1, out_1 = net(pos_1)
+        feature_2, out_2 = net(pos_2)
     else:
         # raise('transform order wrong. Please use following')
         if weight_dbindex_loss != 0:
-            dbindex_loss = get_dbindex_loss(net, pos_org.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, args.use_out_dbindex, args.use_sim, kmean_result, args.use_wholeset_centroid, args.use_mean_dbindex, args.flag_select_confidence, args.confidence_thre, args.keep_gradient_on_center)
+            dbindex_loss = get_dbindex_loss(net, pos_org.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, args.use_out_dbindex, args.use_sim, kmean_result, args.use_wholeset_centroid, args.use_mean_dbindex, args.flag_select_confidence, args.confidence_thre, args.keep_gradient_on_center, args.inter_class_type, args.dbindex_type)
         else:
             dbindex_loss = 0
+        
+        feature_1, out_1 = net(pos_1)
+        feature_2, out_2 = net(pos_2)
 
-    feature_1, out_1 = net(pos_1)
-    feature_2, out_2 = net(pos_2)
+    
     # print(out_1.shape)
     # input()
     # [2*B, D]
@@ -489,14 +493,15 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                     GT_label = []
                     sample_feature = []
                     net.train()
-                    for pos_1, pos_2, pos_org, target in kmeans_loader:
-                        pos_org, target = pos_org.cuda(), target.cuda()
-                        feature_momentum, out_momentum = net.momentum_encoder(pos_org)
-                        if args.use_out_kmeans:
-                            kmeans_feature.append(out_momentum)
-                        else:
-                            kmeans_feature.append(feature_momentum)
-                        GT_label.append(target.detach().cpu().numpy())
+                    with torch.no_grad():
+                        for pos_1, pos_2, pos_org, target in kmeans_loader:
+                            pos_org, target = pos_org.cuda(), target.cuda()
+                            feature_momentum, out_momentum = net.momentum_encoder(pos_org)
+                            if args.use_out_kmeans:
+                                kmeans_feature.append(out_momentum)
+                            else:
+                                kmeans_feature.append(feature_momentum)
+                            GT_label.append(target.detach().cpu().numpy())
 
                     with torch.no_grad():
                         for pos_1, pos_2, pos_org, target in kmeans_loader:
@@ -513,7 +518,7 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
 
                     torch.cuda.empty_cache()
 
-                    kmean_result = run_kmeans(kmeans_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
+                    kmean_result = run_kmeans(sample_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
                     # sample_feature_kmean_result = run_kmeans(sample_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
                     
                     if args.use_GT:
@@ -537,7 +542,6 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                     dbindex = utils.get_np_mean_dbindex(sample_feature.detach().cpu().numpy(), GT_label)
                     print(dbindex)
                     results['GT_dbindex'].append(dbindex)
-                    plot_num = 1024 * 3
                     
                     if args.kmeans_plot:
                         break
@@ -550,7 +554,7 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
             else:
                 if (args.piermaro_restart_epoch + epoch) % 10 == 1:
                     kmeans_loader = DataLoader(const_train_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True, drop_last=False)
-                    kmeans_feature = []
+                    sample_feature = []
                     GT_label = []
                     net.eval()
                     with torch.no_grad():
@@ -558,48 +562,26 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                             pos_org, target = pos_org.cuda(), target.cuda()
                             feature, out = net(pos_org)
                             if args.use_out_kmeans:
-                                kmeans_feature.append(out)
+                                sample_feature.append(out)
                             else:
-                                kmeans_feature.append(feature)
+                                sample_feature.append(feature)
                             GT_label.append(target.detach().cpu().numpy())
                     
-                    kmeans_feature = torch.cat(kmeans_feature, dim=0)
+                    sample_feature = torch.cat(sample_feature, dim=0)
                     GT_label = np.concatenate(GT_label, axis=0)
 
-                    dbindex = metrics.davies_bouldin_score(kmeans_feature.detach().cpu().numpy(), GT_label)
+                    dbindex = metrics.davies_bouldin_score(sample_feature.detach().cpu().numpy(), GT_label)
                     print(dbindex)
-                    dbindex = utils.get_np_mean_dbindex(kmeans_feature.detach().cpu().numpy(), GT_label)
+                    dbindex = utils.get_np_mean_dbindex(sample_feature.detach().cpu().numpy(), GT_label)
                     print(dbindex)
                     results['GT_dbindex'].append(dbindex)
                     last_dbindex = dbindex
 
-                    del kmeans_feature
+                    del sample_feature
                     torch.cuda.empty_cache()
                 else:
                     results['GT_dbindex'].append(last_dbindex)
                     # print(results['GT_dbindex'])
-
-            if args.curriculum == 'DBindex_cluster_GT':
-                kmeans_loader = DataLoader(const_train_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True, drop_last=False)
-                sample_feature = []
-                GT_label = []
-
-                with torch.no_grad():
-                    for pos_1, pos_2, pos_org, target in kmeans_loader:
-                        pos_org, target = pos_org.cuda(), target.cuda()
-                        feature, out = net(pos_org)
-                        if args.use_out_kmeans:
-                            sample_feature.append(out)
-                        else:
-                            sample_feature.append(feature)
-                        GT_label.append(target.detach().cpu().numpy())
-                
-                sample_feature = torch.cat(sample_feature, dim=0)
-                GT_label = np.concatenate(GT_label, axis=0)
-
-                torch.cuda.empty_cache()
-                sample_feature_centroids = utils.get_center(sample_feature.detach().cpu().numpy(), GT_label, args.num_clusters, args.curriculum)
-                kmean_result = {'centroids':sample_feature_centroids}
                     
             train_bar = tqdm(data_loader)
             for pos_1, pos_2, pos_org, target in train_bar:

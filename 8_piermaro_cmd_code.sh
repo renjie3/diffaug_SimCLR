@@ -7,7 +7,7 @@ cd $PIERMARO_JOB_ROOT_PATH
 DATE_NAME=${1}
 echo $$
 
-WHOLE_EPOCH=200
+WHOLE_EPOCH=1000
 SINGLE_EPOCH=50
 REJOB_TIMES=`expr $WHOLE_EPOCH / $SINGLE_EPOCH`
 MYGPUTYPE="v100s"
@@ -27,7 +27,7 @@ JOB_INFO="cifar10 baseline"
 # random_initial_model1
 # train_dbindex_loss
 
-PIERMARO_MYCOMMEND="python main6.py --batch_size 512 --epochs $SINGLE_EPOCH --piermaro_whole_epoch ${WHOLE_EPOCH} --arch resnet18 --dataset cifar10 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path normal_48899799_1_20220319160643_0.5_200_512_1000_model --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 10 --restore_k_when_start --num_clusters 10 100 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --reassign_step 1 --flag_select_confidence --final_high_conf_percent 0.1 --keep_gradient_on_center --inter_class_type wholeset --dbindex_type half --use_org_sample_dbindex"
+PIERMARO_MYCOMMEND="python main.py --batch_size 512 --epochs $SINGLE_EPOCH --piermaro_whole_epoch ${WHOLE_EPOCH} --arch resnet18 --dataset cifar10 --data_name whole_cifar10 --train_mode train_dbindex_loss --curriculum DBindex_cluster_momentum_kmeans_wholeset --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 850 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --final_high_conf_percent 0.3 --recording_more_info"
 
 PIERMARO_MYCOMMEND2="python main.py --batch_size 512 --epochs $SINGLE_EPOCH --piermaro_whole_epoch ${WHOLE_EPOCH} --arch resnet18 --dataset cifar100 --data_name whole_cifar100 --train_mode normal --curriculum DBindex_cluster_momentum_kmeans_wholeset --load_model --load_model_path random_initial_model1 --train_data_drop_last --weight_dbindex_loss 1 --start_dbindex_loss_epoch 510 --restore_k_when_start --num_clusters 200 500 --repeat_num 1 --use_wholeset_centroid --use_mean_dbindex --use_org_sample_dbindex --flag_select_confidence --reassign_step 1 --confidence_thre 0.3"
 

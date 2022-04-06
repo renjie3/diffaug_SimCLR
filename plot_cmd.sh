@@ -20,7 +20,7 @@
 # /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/results/normal_50250369_1_20220330113352_0.5_200_512_200_statistics.png
 # /mnt/home/renjie3/Documents/unlearnable/simclr_set/diffaug_SimCLR/results/normal_50250391_1_20220330113352_0.5_200_512_200_statistics.png
 
-MY_CMD="python plot_loss.py --model_path1 train_dbindex_loss_49435448_1_20220323183157_0.5_200_512_800_model --model_path2 normal_49435447_1_20220323183157_0.5_200_512_800_model"
+MY_CMD="python plot_loss.py --model_path1 train_dbindex_loss_49721374_1_20220326161611_0.5_200_512_1000_model --plot_dbindex_acc"
 
 echo $MY_CMD
 echo ${MY_CMD}>>local_history.log

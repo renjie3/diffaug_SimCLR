@@ -219,7 +219,7 @@ def train_batch_kmeans(net, pos_1, pos_2, pos_org, target, train_optimizer, ifm_
             dbindex_loss = 0
         
         feature_1, out_1 = net(pos_1)
-        feature_2, out_2 = net(pos_org)
+        feature_2, out_2 = net(pos_2)
 
     
     # print(out_1.shape)

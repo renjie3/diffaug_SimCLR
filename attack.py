@@ -1,4 +1,3 @@
-
 import numpy as np
 
 import torch
@@ -320,7 +319,7 @@ class PGD():
         print(metrics.davies_bouldin_score(sample, new_label))
 
 
-def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clusters, repeat_num, use_out_dbindex, use_sim, kmean_result, use_wholeset_centroid, use_mean_dbindex, flag_select_confidence, confidence_thre):
+def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clusters, repeat_num, use_out_dbindex, use_sim, kmean_result, use_wholeset_centroid, use_mean_dbindex, flag_select_confidence, confidence_thre, keep_gradient_on_center):
 
     # repeat_num = 5
     if loss_type in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset']:
@@ -381,16 +380,23 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
             point_dis_to_center_list = []
             if not use_sim:
                 class_center = []
+                class_center_wholeset = []
                 intra_class_dis = []
                 c = torch.max(cluster_label) + 1
                 for i in range(c):
                     idx_i = torch.where(cluster_label == i)[0]
                     class_i = sample[idx_i, :]
                     class_high_conf_label = high_conf_label[idx_i]
-                    class_i_center = kmean_result['centroids'][num_cluster_idx][i].detach()
+
+                    if keep_gradient_on_center:
+                        class_i_center = nn.functional.normalize(class_i.mean(dim=0), p=2, dim=0)
+                    else:
+                        class_i_center = kmean_result['centroids'][num_cluster_idx][i].detach()
+
                     if idx_i.shape[0] == 0:
                         continue
                     class_center.append(class_i_center)
+
                     point_dis_to_center = torch.sqrt(torch.sum((class_i-class_i_center)**2, dim = 1))
                     # TODO: Similar to this
                     # >>> import torch
@@ -435,6 +441,8 @@ def get_dbindex_loss(net, x, labels, loss_type, reverse, my_transform, num_clust
                 if use_mean_dbindex:
                     # cluster_DB_loss = torch.max(intra_class_dis_pair_sum / class_dis, dim=1)[0].mean()
                     cluster_DB_loss = (intra_class_dis_pair_sum / class_dis).mean()
+                    # print(cluster_DB_loss.item())
+                    # input()
                 else:
                     cluster_DB_loss = torch.max(intra_class_dis_pair_sum / class_dis, dim=1)[0].mean()
                 # print(cluster_DB_loss)

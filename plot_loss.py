@@ -72,6 +72,7 @@ if args.model_path2 != '':
     cut = min(len(loss1), len(loss2))
 else:
     cut = len(loss1)
+    # cut = 800
 epoch = np.arange(1, cut+1)
 # if args.model_path2 != '':
 #     p3 = ax.plot(epoch[:cut], loss2[:cut], 'b-', label = 'loss2')

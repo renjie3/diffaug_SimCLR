@@ -14131,3 +14131,9 @@ cifar10 baseline
 python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth --job_id 50283008_1
 python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth --job_id 50283008_2
 ---------------------------------------------------------------
+Mon Apr  4 23:53:17 EDT 2022
+50780042
+cifar10 baseline
+python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth --job_id 50780042_1
+python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth --job_id 50780042_2
+---------------------------------------------------------------

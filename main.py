@@ -71,7 +71,12 @@ parser.add_argument('--flag_select_confidence', action='store_true', default=Fal
 parser.add_argument('--reassign_step', default=1, type=int, help='gap of reassign labels')
 parser.add_argument('--confidence_thre', default=0.3, type=float, help='gap of reassign labels')
 parser.add_argument('--dataset', default='cifar10', type=str, help='what dataset to use')
-parser.add_argument('--final_high_conf_percent', default=0.5, type=float, help='gap of reassign labels')
+parser.add_argument('--final_high_conf_percent', default=0.3, type=float, help='gap of reassign labels')
+parser.add_argument('--use_sample_feature_kmeans', action='store_true', default=False)
+parser.add_argument('--use_GT', action='store_true', default=False)
+parser.add_argument('--keep_gradient_on_center', action='store_true', default=False)
+parser.add_argument('--only_one_time_kmeans', action='store_true', default=False)
+parser.add_argument('--recording_more_info', action='store_true', default=False)
 
 parser.add_argument('--attack_steps', default=10, type=int, help='perturb number of steps')
 
@@ -210,9 +215,9 @@ def train_batch_kmeans(net, pos_1, pos_2, pos_org, target, train_optimizer, ifm_
     else:
         # raise('transform order wrong. Please use following')
         if weight_dbindex_loss != 0:
-            dbindex_loss = get_dbindex_loss(net, pos_org.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, args.use_out_dbindex, args.use_sim, kmean_result, args.use_wholeset_centroid, args.use_mean_dbindex, args.flag_select_confidence, args.confidence_thre)
+            dbindex_loss = get_dbindex_loss(net, pos_org.clone(), target, args.curriculum, args.reorder_reverse, my_transform, args.num_clusters, args.repeat_num, args.use_out_dbindex, args.use_sim, kmean_result, args.use_wholeset_centroid, args.use_mean_dbindex, args.flag_select_confidence, args.confidence_thre, args.keep_gradient_on_center)
         else:
-            dbindex_loss = 0
+            dbindex_loss = torch.tensor([0])
 
     feature_1, out_1 = net(pos_1)
     feature_2, out_2 = net(pos_2)
@@ -245,7 +250,7 @@ def train_batch_kmeans(net, pos_1, pos_2, pos_org, target, train_optimizer, ifm_
     loss.backward()
     train_optimizer.step()
 
-    return loss.item() * this_batch_size, this_batch_size
+    return loss.item() * this_batch_size, this_batch_size, simclr_loss.item() * this_batch_size, -dbindex_loss.item() * this_batch_size
 
 # test for one epoch, use weighted knn to find the most similar images' label to assign the test image
 def test(net, memory_data_loader, test_data_loader, epoch, epochs, ):
@@ -432,7 +437,10 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
         best_test_acc_loss = results['best_test_acc_loss'][len(results['best_test_acc_loss'])-1]
         best_train_loss_acc = results['best_train_loss_acc'][len(results['best_train_loss_acc'])-1]
     else:
-        results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': [], 'GT_dbindex': []}
+        if not args.recording_more_info:
+            results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': [], 'GT_dbindex': []}
+        else:
+            results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_test_acc': [], 'best_test_acc_loss': [], 'best_train_loss_acc': [], 'best_train_loss': [], 'GT_dbindex': [], 'GT_intra': [], 'GT_inter': [], 'simclr_loss': [], 'kmeans_loss': [], }
         best_test_acc = 0.0
         best_train_loss = 10
         best_test_acc_loss = 7.1
@@ -442,10 +450,13 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
     if not args.check_every_step:
         test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, 0, epochs)
     last_dbindex = 0.0
+    last_intra = 0
+    last_inter = 0
     for epoch in range(1, epochs + 1):
         # print(test_acc_1, test_acc_5)
         net.train()
         total_loss, total_num = 0.0, 0
+        total_simclr_loss, total_dbloss = 0, 0
         if args.restore_k_when_start and args.piermaro_restart_epoch + epoch == args.start_dbindex_loss_epoch and args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
             if args.restore_best_test_acc_model:
                 best_acc_model_path = 'results/{}_best_test_acc_model.pth'.format(save_name_pre)
@@ -479,7 +490,9 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                 print(save_name_pre)
                 
             if args.curriculum == 'DBindex_cluster_momentum_kmeans_wholeset' and args.piermaro_restart_epoch + epoch >= args.start_dbindex_loss_epoch:
-                if args.piermaro_restart_epoch + epoch == args.start_dbindex_loss_epoch or (args.piermaro_restart_epoch + epoch) % args.reassign_step == 0:
+                if args.only_one_time_kmeans and args.piermaro_restart_epoch + epoch > args.start_dbindex_loss_epoch:
+                    print('only_one_time_kmeans')
+                elif args.piermaro_restart_epoch + epoch == args.start_dbindex_loss_epoch or (args.piermaro_restart_epoch + epoch) % args.reassign_step == 0:
                     kmeans_loader = DataLoader(const_train_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True, drop_last=False)
                     kmeans_labels_list = []
                     cluster_centers_list = []
@@ -515,7 +528,15 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                     #     kmeans_labels, cluster_centers = kmeans(X=kmeans_feature, num_clusters=args.num_clusters[num_cluster_idx], distance='euclidean', device=pos_1.device, tqdm_flag=False)
                     #     kmeans_labels_list.append(kmeans_labels)
                     #     cluster_centers_list.append(cluster_centers)
-                    kmean_result = run_kmeans(kmeans_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
+                    if not args.use_sample_feature_kmeans:
+                        kmean_result = run_kmeans(kmeans_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
+                    else:
+                        kmean_result = run_kmeans(sample_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
+                    
+                    if args.use_GT:
+                        kmean_result['im2cluster'] = [torch.LongTensor(GT_label).cuda()]
+                        args.num_clusters = [10]
+
                     # sample_feature_kmean_result = run_kmeans(sample_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
                     # print(type(kmean_result['centroids'][0]))
                     # print(kmean_result['centroids'][0])
@@ -539,14 +560,19 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                     kmeans_label_np = torch.stack(kmeans_labels_list, dim=1).detach().cpu().numpy()
                     train_data.targets = kmeans_label_np
 
-                    for db_label in kmeans_labels_list:
-                        # dbindex = metrics.davies_bouldin_score(sample_feature.detach().cpu().numpy(), db_label.detach().cpu().numpy())
-                        dbindex = utils.get_np_mean_dbindex(sample_feature.detach().cpu().numpy(), db_label.detach().cpu().numpy())
-                        # print(dbindex)
+                    # for db_label in kmeans_labels_list:
+                    #     # dbindex = metrics.davies_bouldin_score(sample_feature.detach().cpu().numpy(), db_label.detach().cpu().numpy())
+                    #     dbindex = utils.get_np_mean_dbindex(sample_feature.detach().cpu().numpy(), db_label.detach().cpu().numpy())
+                    #     # print(dbindex)
                     # dbindex = metrics.davies_bouldin_score(sample_feature.detach().cpu().numpy(), GT_label)
-                    dbindex = utils.get_np_mean_dbindex(sample_feature.detach().cpu().numpy(), GT_label)
+                    dbindex, intra, inter = utils.get_np_mean_dbindex(sample_feature.detach().cpu().numpy(), GT_label)
                     print(dbindex)
                     results['GT_dbindex'].append(dbindex)
+                    # 'GT_intra': [], 'GT_inter': [], 'simclr_loss': [], 'kmeans_loss': [], 
+                    if args.recording_more_info:
+                        results['GT_intra'].append(intra)
+                        results['GT_inter'].append(inter)
+
                     plot_num = 1024 * 3
                     
                     if args.kmeans_plot:
@@ -557,6 +583,9 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                     torch.cuda.empty_cache()
                 else:
                     results['GT_dbindex'].append(dbindex)
+                    if args.recording_more_info:
+                        results['GT_intra'].append(intra)
+                        results['GT_inter'].append(inter)
             else:
                 if (args.piermaro_restart_epoch + epoch) % 10 == 1:
                     kmeans_loader = DataLoader(const_train_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True, drop_last=False)
@@ -577,15 +606,23 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                     GT_label = np.concatenate(GT_label, axis=0)
 
                     # dbindex = metrics.davies_bouldin_score(kmeans_feature.detach().cpu().numpy(), GT_label)
-                    dbindex = utils.get_np_mean_dbindex(kmeans_feature.detach().cpu().numpy(), GT_label)
+                    dbindex, intra, inter = utils.get_np_mean_dbindex(kmeans_feature.detach().cpu().numpy(), GT_label)
                     print(dbindex)
                     results['GT_dbindex'].append(dbindex)
+                    if args.recording_more_info:
+                        results['GT_intra'].append(intra)
+                        results['GT_inter'].append(inter)
                     last_dbindex = dbindex
+                    last_intra = intra
+                    last_inter = inter
 
                     del kmeans_feature
                     torch.cuda.empty_cache()
                 else:
                     results['GT_dbindex'].append(last_dbindex)
+                    if args.recording_more_info:
+                        results['GT_intra'].append(last_intra)
+                        results['GT_inter'].append(last_inter)
                     # print(results['GT_dbindex'])
                     
             train_bar = tqdm(data_loader)
@@ -593,19 +630,27 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                 if args.piermaro_restart_epoch + epoch >= args.start_dbindex_loss_epoch:
                     if args.check_every_step:
                         test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, epoch, epochs)
-                    this_loss, this_batch_size = train_batch_kmeans(net, pos_1, pos_2, pos_org, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss, kmean_result)
+                    this_loss, this_batch_size, this_simclr_loss, this_dbloss = train_batch_kmeans(net, pos_1, pos_2, pos_org, target, train_optimizer, args.ifm_epsilon, args.weight_dbindex_loss, kmean_result)
                 else:
                     this_loss, this_batch_size = train_batch(net, pos_1, pos_2, target, train_optimizer, args.ifm_epsilon, 0)
+                    this_simclr_loss, this_dbloss = this_loss,0
                 if args.curriculum in ['DBindex_cluster_momentum_kmeans', 'DBindex_cluster_momentum_kmeans_wholeset', 'DBindex_cluster_momentum_kmeans_repeat_v2']:
                     net._momentum_update_key_encoder()
 
                 total_num += this_batch_size
                 total_loss += this_loss
+                total_simclr_loss += this_simclr_loss
+                total_dbloss += this_dbloss
                 train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
 
         train_loss =  total_loss / total_num
+        total_simclr_loss = total_simclr_loss / total_num
+        total_dbloss = total_dbloss / total_num
 
         results['train_loss'].append(train_loss)
+        if args.recording_more_info:
+            results['simclr_loss'].append(total_simclr_loss)
+            results['kmeans_loss'].append(total_dbloss)
         test_acc_1, test_acc_5 = test(net, memory_loader, test_loader, epoch, epochs)
         # print(test_acc_1, test_acc_5)
         # input()
@@ -628,6 +673,9 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
         results['best_test_acc_loss'].append(best_test_acc_loss)
         results['best_train_loss'].append(best_train_loss)
         results['best_train_loss_acc'].append(best_train_loss_acc)
+
+        if args.debug:
+            print(results)
 
         if not args.no_save:
             # save statistics

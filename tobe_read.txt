@@ -1,7 +1,9 @@
----------------------------------------------------------------
-Wed Mar 30 20:10:39 EDT 2022
-50283008
+Wed Mar 30 11:14:54 EDT 2022
+50248827
 cifar10 baseline
-python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth --job_id 50283008_1
-python linear.py --arch resnet18 --batch_size 512 --epochs 100 --model_path results/normal_48899799_1_20220319160643_0.5_200_512_1000_best_test_acc_model.pth --job_id 50283008_2
+python linear.py --arch resnet50 --batch_size 512 --epochs 100 --model_path results/normal_50093884_1_20220329102753_0.5_200_512_1000_model.pth
 ---------------------------------------------------------------
+Wed Mar 30 11:14:56 EDT 2022
+50248829
+cifar10 baseline
+python linear.py --arch resnet50 --batch_size 512 --epochs 100 --model_path results/normal_50093884_1_20220329102753_0.5_200_512_1000_model.pth

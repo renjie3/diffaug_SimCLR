@@ -72,6 +72,7 @@ parser.add_argument('--reassign_step', default=1, type=int, help='gap of reassig
 parser.add_argument('--confidence_thre', default=0.3, type=float, help='gap of reassign labels')
 parser.add_argument('--dataset', default='cifar10', type=str, help='what dataset to use')
 parser.add_argument('--final_high_conf_percent', default=0.5, type=float, help='gap of reassign labels')
+parser.add_argument('--only_ont_time_kmeans', action='store_true', default=False)
 
 parser.add_argument('--attack_steps', default=10, type=int, help='perturb number of steps')
 
@@ -459,14 +460,17 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                     GT_label = []
                     sample_feature = []
                     net.train()
-                    for pos_1, pos_2, pos_org, target in kmeans_loader:
-                        pos_org, target = pos_org.cuda(), target.cuda()
-                        feature_momentum, out_momentum = net.momentum_encoder(pos_org)
-                        if args.use_out_kmeans:
-                            kmeans_feature.append(out_momentum)
-                        else:
-                            kmeans_feature.append(feature_momentum)
-                        GT_label.append(target.detach().cpu().numpy())
+                    if not (args.only_ont_time_kmeans and args.piermaro_restart_epoch + epoch > args.start_dbindex_loss_epoch):
+                        for pos_1, pos_2, pos_org, target in kmeans_loader:
+                            pos_org, target = pos_org.cuda(), target.cuda()
+                            feature_momentum, out_momentum = net.momentum_encoder(pos_org)
+                            if args.use_out_kmeans:
+                                kmeans_feature.append(out_momentum)
+                            else:
+                                kmeans_feature.append(feature_momentum)
+                            GT_label.append(target.detach().cpu().numpy())
+                        
+                        kmeans_feature = torch.cat(kmeans_feature, dim=0)
 
                     with torch.no_grad():
                         for pos_1, pos_2, pos_org, target in kmeans_loader:
@@ -477,7 +481,7 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                             else:
                                 sample_feature.append(feature)
                     
-                    kmeans_feature = torch.cat(kmeans_feature, dim=0)
+                    # kmeans_feature = torch.cat(kmeans_feature, dim=0)
                     sample_feature = torch.cat(sample_feature, dim=0)
                     GT_label = np.concatenate(GT_label, axis=0)
 
@@ -487,7 +491,10 @@ def train_dbindex_loss_pytorch_loader(net, data_loader, train_optimizer, memory_
                     #     kmeans_labels, cluster_centers = kmeans(X=kmeans_feature, num_clusters=args.num_clusters[num_cluster_idx], distance='euclidean', device=pos_1.device, tqdm_flag=False)
                     #     kmeans_labels_list.append(kmeans_labels)
                     #     cluster_centers_list.append(cluster_centers)
-                    kmean_result = run_kmeans(kmeans_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
+                    if args.only_ont_time_kmeans and args.piermaro_restart_epoch + epoch > args.start_dbindex_loss_epoch:
+                        print('only one time label')
+                    else:
+                        kmean_result = run_kmeans(kmeans_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
                     # sample_feature_kmean_result = run_kmeans(sample_feature.detach().cpu().numpy(), args.num_clusters, 0, temperature)
                     # print(type(kmean_result['centroids'][0]))
                     # print(kmean_result['centroids'][0])
