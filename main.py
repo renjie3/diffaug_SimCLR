@@ -1,5 +1,25 @@
 import argparse
+
+parser = argparse.ArgumentParser(description='Train SimCLR')
+parser.add_argument('--feature_dim', default=128, type=int, help='Feature dim for latent vector')
+parser.add_argument('--temperature', default=0.5, type=float, help='Temperature used in softmax')
+parser.add_argument('--k', default=200, type=int, help='Top k most similar images used to predict the label')
+parser.add_argument('--batch_size', default=512, type=int, help='Number of images in each mini-batch')
+parser.add_argument('--epochs', default=1000, type=int, help='Number of sweeps over the dataset to train')
+parser.add_argument('--arch', default='resnet18', type=str)
+parser.add_argument('--method', default='vanilla', type=str)
+parser.add_argument('--neg', default='gt_same_diff_label', type=str)
+parser.add_argument('--local', default='', type=str)
+parser.add_argument('--job_id', default='local', type=str)
+parser.add_argument('--no_save', action='store_true', default=False)
+parser.add_argument('--seed', default=0, type=int)
+
+# args parse
+args = parser.parse_args()
+
 import os
+if args.local != '':
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.local
 
 import pandas as pd
 import torch
@@ -11,9 +31,200 @@ from tqdm import tqdm
 import utils
 from model import Model
 
+import numpy as np
+import random
+
+if torch.cuda.is_available():
+    # torch.manual_seed(args.seed)
+    torch.cuda.manual_seed(args.seed)
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
+    np.random.seed(args.seed)
+    random.seed(args.seed)
+
+    # torch.backends.cudnn.enabled = True
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+
+
+def vanilla(epochs, model, optimizer, train_loader, memory_loader, test_loader):
+    results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_acc@1': [],}
+    best_acc = 0.0
+    for epoch in range(1, epochs + 1):
+        train_loss = train(model, train_loader, optimizer, epoch)
+        test_acc_1, test_acc_5 = test(model, memory_loader, test_loader, epoch)
+        if test_acc_1 > best_acc:
+            best_acc = test_acc_1
+            if not args.no_save:
+                torch.save(model.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
+        results['train_loss'].append(train_loss)
+        results['test_acc@1'].append(test_acc_1)
+        results['test_acc@5'].append(test_acc_5)
+        results['best_acc@1'].append(best_acc)
+        # save statistics
+        data_frame = pd.DataFrame(data=results, index=range(1, epoch + 1))
+        if not args.no_save:
+            data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
+    if not args.no_save:
+        torch.save(model.state_dict(), 'results/{}_final_model.pth'.format(save_name_pre))
+
+
+def decoupled(epochs, model, optimizer, train_loader, memory_loader, test_loader):
+    results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_acc@1': [],}
+    best_acc = 0.0
+    for epoch in range(1, epochs + 1):
+        train_loss = train_decoupled_batch(model, train_loader, optimizer, epoch)
+        test_acc_1, test_acc_5 = test(model, memory_loader, test_loader, epoch)
+        if test_acc_1 > best_acc:
+            best_acc = test_acc_1
+            if not args.no_save:
+                torch.save(model.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
+        results['train_loss'].append(train_loss)
+        results['test_acc@1'].append(test_acc_1)
+        results['test_acc@5'].append(test_acc_5)
+        results['best_acc@1'].append(best_acc)
+        # save statistics
+        data_frame = pd.DataFrame(data=results, index=range(1, epoch + 1))
+        if not args.no_save:
+            data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
+    if not args.no_save:
+        torch.save(model.state_dict(), 'results/{}_final_model.pth'.format(save_name_pre))
 
 # train for one epoch to learn unique features
-def train(net, data_loader, train_optimizer):
+def train_decoupled_batch(net, data_loader, train_optimizer, epoch):
+    net.train()
+    total_loss, total_num, train_bar = 0.0, 0, tqdm(data_loader)
+    for pos_1, pos_2, target in train_bar:
+        pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
+        feature_1, out_1 = net(pos_1)
+        feature_2, out_2 = net(pos_2)
+        # [2*B, D]
+        out = torch.cat([out_1, out_2], dim=0)
+        # [2*B, 2*B]
+        sim_matrix = torch.exp(torch.mm(out, out.t().contiguous()) / temperature)
+        pos_den_mask1 = torch.cat([torch.zeros((pos_1.shape[0], pos_1.shape[0]), device=pos_1.device), torch.eye(pos_1.shape[0], device=pos_1.device)], dim=0)
+        pos_den_mask2 = torch.cat([torch.eye(pos_1.shape[0], device=pos_1.device), torch.zeros((pos_1.shape[0], pos_1.shape[0]), device=pos_1.device)], dim=0)
+        pos_den_mask = torch.cat([pos_den_mask1, pos_den_mask2], dim=1)
+        mask = (torch.ones_like(sim_matrix) - torch.eye(2 * batch_size, device=sim_matrix.device) - pos_den_mask).bool()
+        # [2*B, 2*B-1]
+        sim_matrix = sim_matrix.masked_select(mask).view(2 * batch_size, -1)
+
+        # compute loss
+        pos_sim = torch.exp(torch.sum(out_1 * out_2, dim=-1) / temperature)
+        # [2*B]
+        pos_sim = torch.cat([pos_sim, pos_sim], dim=0)
+        loss = (- torch.log(pos_sim / sim_matrix.sum(dim=-1))).mean()
+        train_optimizer.zero_grad()
+        loss.backward()
+        train_optimizer.step()
+
+        total_num += batch_size
+        total_loss += loss.item() * batch_size
+        train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
+
+    return total_loss / total_num
+
+def cluster(epochs, model, optimizer, train_loader, memory_loader, test_loader, neg_mode):
+    results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': [], 'best_acc@1': [],}
+    best_acc = 0.0
+    for epoch in range(1, epochs + 1):
+        train_loss = train_cluster_batch(model, train_loader, optimizer, epoch, neg_mode)
+        test_acc_1, test_acc_5 = test(model, memory_loader, test_loader, epoch)
+        if test_acc_1 > best_acc:
+            best_acc = test_acc_1
+            if not args.no_save:
+                torch.save(model.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
+        results['train_loss'].append(train_loss)
+        results['test_acc@1'].append(test_acc_1)
+        results['test_acc@5'].append(test_acc_5)
+        results['best_acc@1'].append(best_acc)
+        # save statistics
+        data_frame = pd.DataFrame(data=results, index=range(1, epoch + 1))
+        if not args.no_save:
+            data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
+    if not args.no_save:
+        torch.save(model.state_dict(), 'results/{}_final_model.pth'.format(save_name_pre))
+
+# train for one epoch to learn unique features
+def train_cluster_batch(net, data_loader, train_optimizer, epoch, neg_mode):
+    net.train()
+    total_loss, total_num, train_bar = 0.0, 0, tqdm(data_loader)
+    for pos_1, pos_2, target in train_bar:
+        pos_1, pos_2, target = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True), target.cuda(non_blocking=True)
+        feature_1, out_1 = net(pos_1)
+        feature_2, out_2 = net(pos_2)
+        # [2*B, D]
+        out = torch.cat([out_1, out_2], dim=0)
+        batch_size = out_1.shape[0]
+        # [2*B, 2*B]
+        sim_matrix = torch.exp(torch.mm(out, out.t().contiguous()) / temperature)
+        sim_pos1_neg1 = sim_matrix[:batch_size, :batch_size]
+        sim_pos1_neg2 = sim_matrix[:batch_size, batch_size:]
+        sim_pos2_neg1 = sim_matrix[batch_size:, :batch_size]
+        sim_pos2_neg2 = sim_matrix[batch_size:, batch_size:]
+        mask_pos1_neg1 = sim_pos1_neg1 > sim_pos1_neg2
+        mask_pos1_neg2 = mask_pos1_neg1.logical_not()
+        mask_pos2_neg1 = sim_pos2_neg1 > sim_pos2_neg2
+        mask_pos2_neg2 = mask_pos2_neg1.logical_not()
+        mask_pos1 = torch.cat([mask_pos1_neg1, mask_pos1_neg2], dim=1)
+        mask_pos2 = torch.cat([mask_pos2_neg1, mask_pos2_neg2], dim=1)
+        mask_closer_neg = torch.cat([mask_pos1, mask_pos2], dim=0)
+
+        label_mat = target.repeat([batch_size, 1]).t()
+        mask_same_label = label_mat == label_mat.t()
+        mask_same_label = mask_same_label.repeat([2,2])
+
+        ## check whether it is right!!!!!
+
+        # print(mask_closer_neg, mask_same_label)
+        if neg_mode == 'gt_same_label':
+            mask_same_label_neg = torch.logical_and(mask_closer_neg.logical_not(), mask_same_label)
+            mask_diff_label_neg = mask_same_label.logical_not()
+        elif neg_mode == 'gt_same_diff_label':
+            mask_same_label_neg = torch.logical_and(mask_closer_neg.logical_not(), mask_same_label)
+            mask_diff_label_neg = torch.logical_and(mask_closer_neg, mask_same_label.logical_not())
+        elif neg_mode == 'gt_diff_label':
+            mask_same_label_neg = mask_same_label
+            mask_diff_label_neg = torch.logical_and(mask_closer_neg, mask_same_label.logical_not())
+        elif neg_mode == 'gt_test1':
+            mask_same_label_neg = torch.logical_and(mask_closer_neg, mask_same_label)
+            mask_diff_label_neg = mask_same_label.logical_not()
+        elif neg_mode == 'gt_test2':
+            mask_same_label_neg = torch.logical_and(mask_closer_neg, mask_same_label)
+            mask_diff_label_neg = torch.logical_and(mask_closer_neg, mask_same_label.logical_not())
+        elif neg_mode == 'gt_test3':
+            mask_same_label_neg = torch.logical_and(mask_closer_neg.logical_not(), mask_same_label)
+            mask_diff_label_neg = torch.logical_and(mask_closer_neg.logical_not(), mask_same_label.logical_not())
+        elif neg_mode == 'gt_test4':
+            mask_same_label_neg = mask_same_label
+            mask_diff_label_neg = torch.logical_and(mask_closer_neg.logical_not(), mask_same_label.logical_not()) # This can support the conclusion about clustering
+        
+        mask_neg = torch.logical_or(mask_same_label_neg, mask_diff_label_neg)
+        # input()
+
+        mask_remove_self = (torch.ones_like(sim_matrix) - torch.eye(2 * batch_size, device=sim_matrix.device)).bool()
+        mask = torch.logical_and(mask_remove_self, mask_neg).int()
+        # [2*B, 2*B-1]
+        # sim_matrix = sim_matrix.masked_select(mask).view(2 * batch_size, -1)
+        sim_matrix = sim_matrix * mask
+
+        # compute loss
+        pos_sim = torch.exp(torch.sum(out_1 * out_2, dim=-1) / temperature)
+        # [2*B]
+        pos_sim = torch.cat([pos_sim, pos_sim], dim=0)
+        loss = (- torch.log(pos_sim / sim_matrix.sum(dim=-1))).mean()
+        train_optimizer.zero_grad()
+        loss.backward()
+        train_optimizer.step()
+
+        total_num += batch_size
+        total_loss += loss.item() * batch_size
+        train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
+
+    return total_loss / total_num
+
+# train for one epoch to learn unique features
+def train(net, data_loader, train_optimizer, epoch):
     net.train()
     total_loss, total_num, train_bar = 0.0, 0, tqdm(data_loader)
     for pos_1, pos_2, target in train_bar:
@@ -43,9 +254,8 @@ def train(net, data_loader, train_optimizer):
 
     return total_loss / total_num
 
-
 # test for one epoch, use weighted knn to find the most similar images' label to assign the test image
-def test(net, memory_data_loader, test_data_loader):
+def test(net, memory_data_loader, test_data_loader, epoch):
     net.eval()
     total_top1, total_top5, total_num, feature_bank = 0.0, 0.0, 0, []
     with torch.no_grad():
@@ -89,26 +299,16 @@ def test(net, memory_data_loader, test_data_loader):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Train SimCLR')
-    parser.add_argument('--feature_dim', default=128, type=int, help='Feature dim for latent vector')
-    parser.add_argument('--temperature', default=0.5, type=float, help='Temperature used in softmax')
-    parser.add_argument('--k', default=200, type=int, help='Top k most similar images used to predict the label')
-    parser.add_argument('--batch_size', default=512, type=int, help='Number of images in each mini-batch')
-    parser.add_argument('--epochs', default=500, type=int, help='Number of sweeps over the dataset to train')
-
-    # args parse
-    args = parser.parse_args()
     feature_dim, temperature, k = args.feature_dim, args.temperature, args.k
     batch_size, epochs = args.batch_size, args.epochs
 
     # data prepare
     train_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.train_transform, download=True)
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=16, pin_memory=True,
-                              drop_last=True)
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True, drop_last=True)
     memory_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.test_transform, download=True)
-    memory_loader = DataLoader(memory_data, batch_size=batch_size, shuffle=False, num_workers=16, pin_memory=True)
+    memory_loader = DataLoader(memory_data, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
     test_data = utils.CIFAR10Pair(root='data', train=False, transform=utils.test_transform, download=True)
-    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=16, pin_memory=True)
+    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
 
     # model setup and optimizer config
     model = Model(feature_dim).cuda()
@@ -119,20 +319,13 @@ if __name__ == '__main__':
     c = len(memory_data.classes)
 
     # training loop
-    results = {'train_loss': [], 'test_acc@1': [], 'test_acc@5': []}
-    save_name_pre = '{}_{}_{}_{}_{}'.format(feature_dim, temperature, k, batch_size, epochs)
+    save_name_pre = '{}_{}_{}_{}_{}_{}_{}'.format(args.method, args.job_id, feature_dim, temperature, k, batch_size, epochs)
     if not os.path.exists('results'):
         os.mkdir('results')
-    best_acc = 0.0
-    for epoch in range(1, epochs + 1):
-        train_loss = train(model, train_loader, optimizer)
-        results['train_loss'].append(train_loss)
-        test_acc_1, test_acc_5 = test(model, memory_loader, test_loader)
-        results['test_acc@1'].append(test_acc_1)
-        results['test_acc@5'].append(test_acc_5)
-        # save statistics
-        data_frame = pd.DataFrame(data=results, index=range(1, epoch + 1))
-        data_frame.to_csv('results/{}_statistics.csv'.format(save_name_pre), index_label='epoch')
-        if test_acc_1 > best_acc:
-            best_acc = test_acc_1
-            torch.save(model.state_dict(), 'results/{}_model.pth'.format(save_name_pre))
+
+    if args.method == 'vanilla':
+        vanilla(epochs, model, optimizer, train_loader, memory_loader, test_loader)
+    elif args.method == 'decoupled':
+        decoupled(epochs, model, optimizer, train_loader, memory_loader, test_loader)
+    elif args.method == 'cluster':
+        cluster(epochs, model, optimizer, train_loader, memory_loader, test_loader, args.neg)

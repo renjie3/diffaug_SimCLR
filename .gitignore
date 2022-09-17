@@ -1,0 +1,11 @@
+__pycache__/
+data/
+logfile/
+results/
+slurm_files/
+submit_history.log
+submit.sb
+history_job.log
+local_history.log
+finish_history.log
+job.sh
