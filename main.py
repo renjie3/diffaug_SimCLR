@@ -33,6 +33,7 @@ from model import Model
 
 import numpy as np
 import random
+import time
 
 if torch.cuda.is_available():
     # torch.manual_seed(args.seed)
@@ -169,8 +170,8 @@ def train_cluster_batch(net, data_loader, train_optimizer, epoch, neg_mode):
         if 'gt_test5':
             mask_pos1_neg1 = torch.ones_like(mask_pos1_neg1).bool()
             mask_pos1_neg2 = torch.zeros_like(mask_pos1_neg2).bool()
-            mask_pos2_neg1 = torch.ones_like(mask_pos2_neg1).bool()
-            mask_pos2_neg2 = torch.zeros_like(mask_pos2_neg2).bool()
+            mask_pos2_neg1 = torch.zeros_like(mask_pos2_neg1).bool()
+            mask_pos2_neg2 = torch.ones_like(mask_pos2_neg2).bool()
 
         mask_pos1 = torch.cat([mask_pos1_neg1, mask_pos1_neg2], dim=1)
         mask_pos2 = torch.cat([mask_pos2_neg1, mask_pos2_neg2], dim=1)
