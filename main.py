@@ -166,9 +166,16 @@ def train_cluster_batch(net, data_loader, train_optimizer, epoch, neg_mode):
         mask_pos1_neg2 = mask_pos1_neg1.logical_not()
         mask_pos2_neg1 = sim_pos2_neg1 > sim_pos2_neg2
         mask_pos2_neg2 = mask_pos2_neg1.logical_not()
+        if 'gt_test5':
+            mask_pos1_neg1 = torch.ones_like(mask_pos1_neg1).bool()
+            mask_pos1_neg2 = torch.zeros_like(mask_pos1_neg2).bool()
+            mask_pos2_neg1 = torch.ones_like(mask_pos2_neg1).bool()
+            mask_pos2_neg2 = torch.zeros_like(mask_pos2_neg2).bool()
+
         mask_pos1 = torch.cat([mask_pos1_neg1, mask_pos1_neg2], dim=1)
         mask_pos2 = torch.cat([mask_pos2_neg1, mask_pos2_neg2], dim=1)
         mask_closer_neg = torch.cat([mask_pos1, mask_pos2], dim=0)
+
 
         label_mat = target.repeat([batch_size, 1]).t()
         mask_same_label = label_mat == label_mat.t()
@@ -198,6 +205,9 @@ def train_cluster_batch(net, data_loader, train_optimizer, epoch, neg_mode):
         elif neg_mode == 'gt_test4':
             mask_same_label_neg = mask_same_label
             mask_diff_label_neg = torch.logical_and(mask_closer_neg.logical_not(), mask_same_label.logical_not()) # This can support the conclusion about clustering
+        elif neg_mode == 'gt_test5':
+            mask_same_label_neg = torch.logical_and(mask_closer_neg.logical_not(), mask_same_label)
+            mask_diff_label_neg = torch.logical_and(mask_closer_neg, mask_same_label.logical_not())
         
         mask_neg = torch.logical_or(mask_same_label_neg, mask_diff_label_neg)
         # input()
