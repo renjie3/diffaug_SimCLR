@@ -9,3 +9,7 @@ history_job.log
 local_history.log
 finish_history.log
 job.sh
+cmd/
+job.sh
+local_cmd.sh
+local_history.log

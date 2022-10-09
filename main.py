@@ -7,10 +7,15 @@ parser.add_argument('--k', default=200, type=int, help='Top k most similar image
 parser.add_argument('--batch_size', default=512, type=int, help='Number of images in each mini-batch')
 parser.add_argument('--epochs', default=1000, type=int, help='Number of sweeps over the dataset to train')
 parser.add_argument('--arch', default='resnet18', type=str)
+parser.add_argument('--dataset', default='cifar10', type=str)
 parser.add_argument('--method', default='vanilla', type=str)
 parser.add_argument('--neg', default='gt_same_diff_label', type=str)
 parser.add_argument('--local', default='', type=str)
 parser.add_argument('--job_id', default='local', type=str)
+parser.add_argument('--load_model', action='store_true', default=False)
+parser.add_argument('--load_model_path', default='', type=str)
+parser.add_argument('--plot_feature', action='store_true', default=False)
+parser.add_argument('--plot_save_name', default='', type=str)
 parser.add_argument('--no_save', action='store_true', default=False)
 parser.add_argument('--seed', default=0, type=int)
 
@@ -46,6 +51,10 @@ if torch.cuda.is_available():
     # torch.backends.cudnn.enabled = True
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
+
+    device = torch.device('cuda')
+else:
+    device = torch.device('cpu')
 
 
 def vanilla(epochs, model, optimizer, train_loader, memory_loader, test_loader):
@@ -150,6 +159,8 @@ def cluster(epochs, model, optimizer, train_loader, memory_loader, test_loader, 
 def train_cluster_batch(net, data_loader, train_optimizer, epoch, neg_mode):
     net.train()
     total_loss, total_num, train_bar = 0.0, 0, tqdm(data_loader)
+    last_batch_out = None
+    last_batch_target = None
     for pos_1, pos_2, target in train_bar:
         pos_1, pos_2, target = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True), target.cuda(non_blocking=True)
         feature_1, out_1 = net(pos_1)
@@ -177,10 +188,35 @@ def train_cluster_batch(net, data_loader, train_optimizer, epoch, neg_mode):
         mask_pos2 = torch.cat([mask_pos2_neg1, mask_pos2_neg2], dim=1)
         mask_closer_neg = torch.cat([mask_pos1, mask_pos2], dim=0)
 
-
         label_mat = target.repeat([batch_size, 1]).t()
         mask_same_label = label_mat == label_mat.t()
         mask_same_label = mask_same_label.repeat([2,2])
+
+        if last_batch_out != None:
+            sim_matrix2 = torch.exp(torch.mm(out, last_batch_out.t().contiguous()) / temperature)
+            sim_pos1_neg1 = sim_matrix2[:batch_size, :batch_size]
+            sim_pos1_neg2 = sim_matrix2[:batch_size, batch_size:]
+            sim_pos2_neg1 = sim_matrix2[batch_size:, :batch_size]
+            sim_pos2_neg2 = sim_matrix2[batch_size:, batch_size:]
+            mask_pos1_neg1 = sim_pos1_neg1 > sim_pos1_neg2
+            mask_pos1_neg2 = mask_pos1_neg1.logical_not()
+            mask_pos2_neg1 = sim_pos2_neg1 > sim_pos2_neg2
+            mask_pos2_neg2 = mask_pos2_neg1.logical_not()
+
+            mask_pos1 = torch.cat([mask_pos1_neg1, mask_pos1_neg2], dim=1)
+            mask_pos2 = torch.cat([mask_pos2_neg1, mask_pos2_neg2], dim=1)
+            mask_closer_neg2 = torch.cat([mask_pos1, mask_pos2], dim=0)
+
+            label_mat2 = last_batch_target.repeat([batch_size, 1]).t()
+            mask_same_label2 = label_mat == label_mat2.t()
+            mask_same_label2 = mask_same_label2.repeat([2,2])
+
+            mask_diff_label_neg2 = torch.logical_and(mask_closer_neg2, mask_same_label2.logical_not())
+
+            mask_neg2 = mask_diff_label_neg2
+            mask2 = mask_neg2.int()
+
+            sim_matrix2 = sim_matrix2 * mask2
 
         ## check whether it is right!!!!!
 
@@ -219,6 +255,9 @@ def train_cluster_batch(net, data_loader, train_optimizer, epoch, neg_mode):
         # sim_matrix = sim_matrix.masked_select(mask).view(2 * batch_size, -1)
         sim_matrix = sim_matrix * mask
 
+        if last_batch_out != None:
+            sim_matrix = torch.cat([sim_matrix, sim_matrix2], dim=-1)
+
         # compute loss
         pos_sim = torch.exp(torch.sum(out_1 * out_2, dim=-1) / temperature)
         # [2*B]
@@ -231,6 +270,9 @@ def train_cluster_batch(net, data_loader, train_optimizer, epoch, neg_mode):
         total_num += batch_size
         total_loss += loss.item() * batch_size
         train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
+
+        last_batch_out = out.detach()
+        last_batch_target = target.detach()
 
     return total_loss / total_num
 
@@ -314,12 +356,20 @@ if __name__ == '__main__':
     batch_size, epochs = args.batch_size, args.epochs
 
     # data prepare
-    train_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.train_transform, download=True)
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True, drop_last=True)
-    memory_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.test_transform, download=True)
-    memory_loader = DataLoader(memory_data, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
-    test_data = utils.CIFAR10Pair(root='data', train=False, transform=utils.test_transform, download=True)
-    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    if args.dataset == 'cifar10':
+        train_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.train_transform, download=True)
+        train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True, drop_last=True)
+        memory_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.test_transform, download=True)
+        memory_loader = DataLoader(memory_data, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+        test_data = utils.CIFAR10Pair(root='data', train=False, transform=utils.test_transform, download=True)
+        test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    elif args.dataset == 'cifar100':
+        train_data = utils.CIFAR100Pair(root='data', train=True, transform=utils.train_transform, download=True)
+        train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True, drop_last=True)
+        memory_data = utils.CIFAR100Pair(root='data', train=True, transform=utils.test_transform, download=True)
+        memory_loader = DataLoader(memory_data, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+        test_data = utils.CIFAR100Pair(root='data', train=False, transform=utils.test_transform, download=True)
+        test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
 
     # model setup and optimizer config
     model = Model(feature_dim).cuda()
@@ -329,10 +379,45 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-6)
     c = len(memory_data.classes)
 
+    if args.load_model:
+        # unlearnable_cleantrain_41501264_1_20211204151414_0.5_512_1000_final_model
+        load_model_path = './results/{}.pth'.format(args.load_model_path)
+        # load_model_path = '/mnt/home/renjie3/Documents/unlearnable/CL_cluster/diffaug_SimCLR/results/vanilla_local_128_0.5_200_1024_1000_model.pth'
+        checkpoints = torch.load(load_model_path, map_location=device)
+        filter_name_checkpoints = {}
+        for key in checkpoints:
+            filter_name_checkpoints[key.replace('module.', '')] = checkpoints[key]
+        model.load_state_dict(filter_name_checkpoints)
+
     # training loop
     save_name_pre = '{}_{}_{}_{}_{}_{}_{}'.format(args.method, args.job_id, feature_dim, temperature, k, batch_size, epochs)
     if not os.path.exists('results'):
         os.mkdir('results')
+
+    # # model setup and optimizer config
+    # model2 = Model(feature_dim).cuda()
+    # flops, params = profile(model2, inputs=(torch.randn(1, 3, 32, 32).cuda(),))
+    # flops, params = clever_format([flops, params])
+    # print('# Model Params: {} FLOPs: {}'.format(params, flops))
+    # optimizer = optim.Adam(model2.parameters(), lr=1e-3, weight_decay=1e-6)
+    # c = len(memory_data.classes)
+
+    # if args.load_model:
+    #     load_model_path = './results/vanilla_local_128_0.5_200_512_1_final_model.pth'
+    #     checkpoints = torch.load(load_model_path, map_location=device)
+    #     filter_name_checkpoints = {}
+    #     for key in checkpoints:
+    #         filter_name_checkpoints[key.replace('module.', '')] = checkpoints[key]
+    #     model2.load_state_dict(filter_name_checkpoints)
+
+    # training loop
+    save_name_pre = '{}_{}_{}_{}_{}_{}_{}'.format(args.method, args.job_id, feature_dim, temperature, k, batch_size, epochs)
+    if not os.path.exists('results'):
+        os.mkdir('results')
+
+    if args.plot_feature:
+        utils.test_ssl_visualization(model, test_data, args.plot_save_name, None)
+        input('plot done')
 
     if args.method == 'vanilla':
         vanilla(epochs, model, optimizer, train_loader, memory_loader, test_loader)
