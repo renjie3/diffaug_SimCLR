@@ -162,6 +162,7 @@ def train_cluster_batch(net, data_loader, train_optimizer, epoch, neg_mode):
     last_batch_out = None
     last_batch_target = None
     for pos_1, pos_2, target in train_bar:
+        time0 = time.time()
         pos_1, pos_2, target = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True), target.cuda(non_blocking=True)
         feature_1, out_1 = net(pos_1)
         feature_2, out_2 = net(pos_2)
@@ -245,6 +246,9 @@ def train_cluster_batch(net, data_loader, train_optimizer, epoch, neg_mode):
         elif neg_mode == 'gt_test5':
             mask_same_label_neg = torch.logical_and(mask_closer_neg.logical_not(), mask_same_label)
             mask_diff_label_neg = torch.logical_and(mask_closer_neg, mask_same_label.logical_not())
+        elif neg_mode == 'gt_test6': # the same as vanilla
+            mask_same_label_neg = mask_same_label
+            mask_diff_label_neg = mask_same_label.logical_not()
         
         mask_neg = torch.logical_or(mask_same_label_neg, mask_diff_label_neg)
         # input()
@@ -263,16 +267,23 @@ def train_cluster_batch(net, data_loader, train_optimizer, epoch, neg_mode):
         # [2*B]
         pos_sim = torch.cat([pos_sim, pos_sim], dim=0)
         loss = (- torch.log(pos_sim / sim_matrix.sum(dim=-1))).mean()
+
+        time1 = time.time()
+
         train_optimizer.zero_grad()
         loss.backward()
         train_optimizer.step()
+
+        time2 = time.time()
+
+        # print('time0:', time1 - time0, 'time1:', time2 - time1)
 
         total_num += batch_size
         total_loss += loss.item() * batch_size
         train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, epochs, total_loss / total_num))
 
-        last_batch_out = out.detach()
-        last_batch_target = target.detach()
+        # last_batch_out = out.detach()
+        # last_batch_target = target.detach()
 
     return total_loss / total_num
 
@@ -281,25 +292,37 @@ def train(net, data_loader, train_optimizer, epoch):
     net.train()
     total_loss, total_num, train_bar = 0.0, 0, tqdm(data_loader)
     for pos_1, pos_2, target in train_bar:
+        time0 = time.time()
         pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
         feature_1, out_1 = net(pos_1)
         feature_2, out_2 = net(pos_2)
+        time0_5 = time.time()
         # [2*B, D]
         out = torch.cat([out_1, out_2], dim=0)
+        time0_6 = time.time()
         # [2*B, 2*B]
         sim_matrix = torch.exp(torch.mm(out, out.t().contiguous()) / temperature)
         mask = (torch.ones_like(sim_matrix) - torch.eye(2 * batch_size, device=sim_matrix.device)).bool()
         # [2*B, 2*B-1]
-        sim_matrix = sim_matrix.masked_select(mask).view(2 * batch_size, -1)
+        time0_7 = time.time()
+        sim_matrix = sim_matrix.masked_select(mask)
+        time0_8 = time.time()
+        sim_matrix = sim_matrix.view(2 * batch_size, -1)
+
+        time0_9 = time.time()
 
         # compute loss
         pos_sim = torch.exp(torch.sum(out_1 * out_2, dim=-1) / temperature)
         # [2*B]
         pos_sim = torch.cat([pos_sim, pos_sim], dim=0)
         loss = (- torch.log(pos_sim / sim_matrix.sum(dim=-1))).mean()
+        time1 = time.time()
         train_optimizer.zero_grad()
         loss.backward()
         train_optimizer.step()
+        time2 = time.time()
+
+        # print('time0.5:', time0_5 - time0, 'time0.6:', time0_6 - time0_5, 'time0.7:', time0_7 - time0_6, 'time0.8:', time0_8 - time0_7, 'time0.9:', time0_9 - time0_8, 'time1:', time1 - time0_9,   'time1:', time2 - time1)
 
         total_num += batch_size
         total_loss += loss.item() * batch_size
